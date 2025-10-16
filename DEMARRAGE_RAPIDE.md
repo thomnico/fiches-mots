@@ -103,8 +103,8 @@ vercel dev --listen 3000
 cat .env
 
 # Devrait afficher:
-# UNSPLASH_ACCESS_KEY=J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU
-# PIXABAY_API_KEY=52789824-40fb09218b750e39916fccc44
+# UNSPLASH_ACCESS_KEY=votre_clé_unsplash_ici
+# PIXABAY_API_KEY=votre_clé_pixabay_ici
 ```
 
 Si le fichier n'existe pas :

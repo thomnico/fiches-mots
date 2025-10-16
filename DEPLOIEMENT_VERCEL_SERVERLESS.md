@@ -88,8 +88,8 @@ cp .env.example .env
 
 2. Éditez `.env` avec vos vraies clés :
 ```bash
-UNSPLASH_ACCESS_KEY=J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU
-PIXABAY_API_KEY=52789824-40fb09218b750e39916fccc44
+UNSPLASH_ACCESS_KEY=votre_clé_unsplash_ici
+PIXABAY_API_KEY=votre_clé_pixabay_ici
 ```
 
 3. Testez localement avec `vercel dev` :
@@ -105,9 +105,9 @@ Ouvrez http://localhost:3000
 3. Allez dans **Settings → Environment Variables**
 4. Ajoutez :
    - **Name:** `UNSPLASH_ACCESS_KEY`
-     **Value:** `J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU`
+     **Value:** `votre_clé_unsplash_ici`
    - **Name:** `PIXABAY_API_KEY`
-     **Value:** `52789824-40fb09218b750e39916fccc44`
+     **Value:** `votre_clé_pixabay_ici`
 5. Cochez **Production**, **Preview**, **Development**
 
 ## 📤 Étape 3 : Déployer

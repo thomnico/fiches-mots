@@ -26,8 +26,8 @@ vercel
 Sur [vercel.com](https://vercel.com), allez dans votre projet → **Settings → Environment Variables**
 
 Ajoutez :
-- `UNSPLASH_ACCESS_KEY` = `J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU`
-- `PIXABAY_API_KEY` = `52789824-40fb09218b750e39916fccc44`
+- `UNSPLASH_ACCESS_KEY` = `votre_clé_unsplash_ici`
+- `PIXABAY_API_KEY` = `votre_clé_pixabay_ici`
 
 ### 4️⃣ Redéployez
 

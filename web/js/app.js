@@ -157,13 +157,16 @@ class App {
     createWordSection(word) {
         const section = document.createElement('div');
         section.className = 'word-section';
-        section.id = `word-${word}`;
+        // Encoder le mot pour créer un ID valide (remplacer tous les caractères spéciaux)
+        // Remplacer %XX par des tirets pour avoir un ID HTML valide
+        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        section.id = `word-${wordId}`;
         section.dataset.currentPage = '0';  // Pour la pagination
 
         section.innerHTML = `
             <h3>📝 ${word}</h3>
             <p>Sélectionnez une image parmi les propositions :</p>
-            <div class="images-grid" id="images-${word}">
+            <div class="images-grid" id="images-${wordId}">
                 ${this.createLoadingSpinners()}
             </div>
             <div class="pagination-buttons" style="display: none; margin-top: 15px; text-align: center;">
@@ -195,7 +198,8 @@ class App {
      * Affiche les images pour un mot (avec pagination)
      */
     displayImagesForWord(word, images, section) {
-        const grid = section.querySelector(`#images-${word}`);
+        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const grid = section.querySelector(`#images-${wordId}`);
 
         if (images.length === 0) {
             grid.innerHTML = '<p style="color: #999;">Aucune image trouvée</p>';
@@ -219,7 +223,8 @@ class App {
      * Affiche une page d'images (3 images)
      */
     displayImagePage(word, section, pageIndex) {
-        const grid = section.querySelector(`#images-${word}`);
+        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const grid = section.querySelector(`#images-${wordId}`);
         const allImages = JSON.parse(section.dataset.allImages || '[]');
 
         // Calculer les indices de début et fin
@@ -263,7 +268,8 @@ class App {
      * Gère le clic sur "Plus d'images"
      */
     handleMoreImages(word) {
-        const section = document.getElementById(`word-${word}`);
+        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const section = document.getElementById(`word-${wordId}`);
         const allImages = JSON.parse(section.dataset.allImages || '[]');
         const currentPage = parseInt(section.dataset.currentPage || '0');
 
@@ -305,8 +311,14 @@ class App {
      */
     selectImage(word, imageUrl, imageElement) {
         // Désélectionner les autres images du même mot
-        const allOptions = document.querySelectorAll(`[data-word="${word}"]`);
-        allOptions.forEach(opt => opt.classList.remove('selected'));
+        // Pour éviter les problèmes d'échappement, sélectionner toutes les options
+        // et filtrer en JavaScript
+        const allOptions = document.querySelectorAll('.image-option');
+        allOptions.forEach(opt => {
+            if (opt.dataset.word === word) {
+                opt.classList.remove('selected');
+            }
+        });
 
         // Sélectionner cette image
         imageElement.classList.add('selected');

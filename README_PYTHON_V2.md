@@ -41,15 +41,15 @@ pip install -r requirements.txt
 #### Option 1 : Variables d'environnement (recommandé)
 
 ```bash
-export PIXABAY_API_KEY="52789824-40fb09218b750e39916fccc44"
-export UNSPLASH_ACCESS_KEY="J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU"
+export PIXABAY_API_KEY="votre_clé_pixabay_ici"
+export UNSPLASH_ACCESS_KEY="votre_clé_unsplash_ici"
 ```
 
 Ou ajoutez-les dans votre `.bashrc`/`.zshrc` :
 
 ```bash
-echo 'export PIXABAY_API_KEY="52789824-40fb09218b750e39916fccc44"' >> ~/.zshrc
-echo 'export UNSPLASH_ACCESS_KEY="J52y_IWplzV6Wz6IsHpAr_TSkHEUTdQd8nvejL4X4PU"' >> ~/.zshrc
+echo 'export PIXABAY_API_KEY="votre_clé_pixabay_ici"' >> ~/.zshrc
+echo 'export UNSPLASH_ACCESS_KEY="votre_clé_unsplash_ici"' >> ~/.zshrc
 source ~/.zshrc
 ```
 

@@ -5,10 +5,10 @@ Générateur de fiches pédagogiques au format PDF avec polices dyslexiques (Ope
 ## 🎯 Deux versions disponibles
 
 ### 🐍 Version Python (Ligne de commande)
-Script automatisé avec recherche d'images avancée
-- Recherche automatique via PublicDomainVectors, OpenClipart, Google Images
-- Priorisation des stickers Freepik
-- Support SVG avec conversion automatique
+Script automatisé avec recherche d'images via APIs
+- Recherche automatique via Pixabay et Unsplash
+- Vecteurs et illustrations adaptés aux enfants
+- Configuration via variables d'environnement (.env)
 - Génération batch
 
 ### 🌐 Version Web (Interface graphique)
@@ -27,6 +27,10 @@ Application web interactive sans installation
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+# Configuration des clés API (obligatoire)
+cp .env.example .env
+# Éditez .env avec vos clés Pixabay et Unsplash
 
 # Utilisation
 python3 generate_fiches.py mots_animaux.txt
@@ -126,21 +130,24 @@ fiches-mots/
 │   │   ├── imageSearch.js
 │   │   └── pdfGenerator.js
 │   └── fonts/               # Polices (copie)
-└── test_web.py              # Tests Playwright
+├── api/                      # Fonctions serverless Vercel
+│   ├── pixabay.js
+│   └── unsplash.js
+└── .env.example             # Configuration API
 
 ```
 
 ## 🧪 Tests
 
-### Tests automatisés (Playwright)
+Pour tester le script Python :
 
 ```bash
-pip install playwright
-playwright install chromium
-python3 test_web.py
-```
+# Tester avec un fichier exemple
+python3 generate_fiches.py mots_automne.txt
 
-Les captures d'écran sont sauvegardées dans `web/screenshots/`
+# Vérifier le PDF généré
+open output/fiches_automne.pdf
+```
 
 ## 📚 Documentation
 
@@ -199,10 +206,10 @@ La version web est 100% statique :
 
 ### Version Python - Images
 
-- Recherche sur 3 sources : PublicDomainVectors, OpenClipart, Google Images
-- **Meilleure qualité et pertinence des images**
-- Priorise les stickers Freepik via Google
-- Certains sites peuvent bloquer les requêtes (rate limiting)
+- Recherche sur 2 APIs : Pixabay (vecteurs prioritaires) + Unsplash (photos fallback)
+- **Clés API requises** : Configurez .env avec vos clés Pixabay et Unsplash
+- Qualité professionnelle et images libres de droits
+- Limite de 5000 requêtes/mois (gratuit)
 
 ## 🐛 Résolution de problèmes
 
@@ -213,8 +220,9 @@ pip install -r requirements.txt
 ```
 
 **Python: Aucune image trouvée**
+- Vérifiez que les clés API sont configurées dans .env
 - Vérifiez votre connexion internet
-- Attendez quelques secondes entre les générations (rate limiting)
+- Vérifiez vos quotas API (Pixabay et Unsplash gratuits : 5000/mois)
 
 **Web: Les images ne se chargent pas**
 - Vérifiez votre connexion internet
