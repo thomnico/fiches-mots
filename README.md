@@ -33,17 +33,30 @@ python3 generate_fiches.py mots_animaux.txt
 # → Génère output/fiches_animaux.pdf
 ```
 
-### Version Web
+### Version Web (Développement Local)
 
 ```bash
-# Ouvrir directement dans le navigateur
-open web/index.html
+# Méthode recommandée: Serveur Vercel Dev (avec fonctions serverless)
+npm install -g vercel
+npm run dev
+# → http://localhost:3000
 
-# Ou avec serveur local
+# Alternative: Serveur HTTP simple (sans API sécurisées)
 cd web/
 python3 -m http.server 8000
 # → http://localhost:8000
 ```
+
+### Déploiement sur Vercel (Production)
+
+```bash
+# Déploiement en 3 commandes
+npm install -g vercel
+vercel  # Preview
+vercel --prod  # Production
+```
+
+📚 **Documentation complète** : [README_DEPLOIEMENT_VERCEL.md](./README_DEPLOIEMENT_VERCEL.md)
 
 ## 📖 Utilisation
 
@@ -178,10 +191,11 @@ La version web est 100% statique :
 
 ### Version Web - Images
 
-- Les images proviennent d'Unsplash Source (gratuit, sans API)
+- **APIs utilisées** : Pixabay (vecteurs prioritaires) + Unsplash (photos fallback)
+- **Sécurité** : Clés API protégées par fonctions serverless Vercel
+- **Pagination** : 20+ images par mot, 3 affichées à la fois
 - **Nécessite une connexion internet**
 - Les images peuvent prendre quelques secondes à charger
-- Les images changent à chaque recherche (aléatoire)
 
 ### Version Python - Images
 
