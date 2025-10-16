@@ -184,9 +184,18 @@ class PDFGenerator {
         const xCenter = ficheX + ficheWidth / 2;
 
         // Position Y initiale (haut de la page)
-        let currentY = margin;
+        const topMargin = margin;
 
-        // 1. Image (si disponible)
+        // ZONE IMAGE: hauteur fixe réservée pour l'image
+        const imageZoneHeight = cfg.imageMaxHeight * 1.69; // Zone réservée pour l'image (hauteur max)
+
+        // POSITIONS FIXES pour les mots (toujours à la même hauteur)
+        const textStartY = topMargin + imageZoneHeight + cfg.spacing;
+        const capitalY = textStartY;
+        const scriptY = capitalY + 40;
+        const cursiveY = scriptY + 70;
+
+        // 1. Image (si disponible) - centrée dans la zone réservée
         if (imageUrl && imageUrl !== 'none') {
             try {
                 // Télécharger l'image en Data URL
@@ -213,8 +222,11 @@ class PDFGenerator {
                     width = height * aspect;
                 }
 
+                // Centrer l'image horizontalement dans la fiche
                 const imgX = xCenter - width / 2;
-                const imgY = currentY;
+
+                // Centrer l'image verticalement dans la zone réservée
+                const imgY = topMargin + (imageZoneHeight - height) / 2;
 
                 // Bordure noire autour de l'image (2pt)
                 this.doc.setDrawColor(0, 0, 0);
@@ -224,34 +236,27 @@ class PDFGenerator {
                 // Dessiner l'image
                 this.doc.addImage(dataUrl, 'JPEG', imgX, imgY, width, height);
 
-                currentY = imgY + height + cfg.spacing;
-
             } catch (error) {
                 console.error(`Erreur chargement image pour "${word}":`, error);
-                // Continuer sans l'image
-                currentY += cfg.spacing;
+                // Continuer sans l'image (les mots restent à la même position)
             }
-        } else {
-            currentY += cfg.spacing;
         }
 
-        // 2. Mot en CAPITALES (OpenDyslexic Bold, 32pt)
+        // 2. Mot en CAPITALES (OpenDyslexic Bold, 32pt) - Position FIXE
         this.doc.setFont('OpenDyslexic-Bold', 'normal');
         this.doc.setFontSize(cfg.fontSize.capital);
         this.doc.setTextColor(0, 0, 0);
-        this.doc.text(word.toUpperCase(), xCenter, currentY, { align: 'center' });
-        currentY += 40;
+        this.doc.text(word.toUpperCase(), xCenter, capitalY, { align: 'center' });
 
-        // 3. Mot en script (OpenDyslexic, 36pt)
+        // 3. Mot en script (OpenDyslexic, 36pt) - Position FIXE
         this.doc.setFont('OpenDyslexic', 'normal');
         this.doc.setFontSize(cfg.fontSize.script);
-        this.doc.text(word.toLowerCase(), xCenter, currentY, { align: 'center' });
-        currentY += 70; // Augmenté de 48 à 70 pour plus d'espace avant le cursif
+        this.doc.text(word.toLowerCase(), xCenter, scriptY, { align: 'center' });
 
-        // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND)
+        // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND) - Position FIXE
         this.doc.setFont('Ecolier', 'normal');
         this.doc.setFontSize(cfg.fontSize.cursive);
-        this.doc.text(word.toLowerCase(), xCenter, currentY, { align: 'center' });
+        this.doc.text(word.toLowerCase(), xCenter, cursiveY, { align: 'center' });
     }
 
     /**
