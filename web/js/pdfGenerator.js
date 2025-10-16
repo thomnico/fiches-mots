@@ -148,10 +148,14 @@ class PDFGenerator {
         const cfg = CONFIG.pdf;
         const pageHeight = cfg.pageHeight;
         const margin = cfg.margin;
-        const wordHeight = (pageHeight - 2 * margin) / 2;
+
+        // Espacement entre les 2 mots sur la page (en points)
+        const interWordSpacing = 113.4; // 4cm entre les mots
+        const availableHeight = pageHeight - 2 * margin - interWordSpacing;
+        const wordHeight = availableHeight / 2;
 
         // Position Y de départ pour cette fiche
-        let currentY = margin + (position * wordHeight);
+        let currentY = margin + (position * (wordHeight + interWordSpacing));
         const xCenter = cfg.pageWidth / 2;
 
         // 1. Image (si disponible)
@@ -210,7 +214,7 @@ class PDFGenerator {
         this.doc.setFont('OpenDyslexic', 'normal');
         this.doc.setFontSize(cfg.fontSize.script);
         this.doc.text(word.toLowerCase(), xCenter, currentY, { align: 'center' });
-        currentY += 48;
+        currentY += 70; // Augmenté de 48 à 70 pour plus d'espace avant le cursif
 
         // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND)
         this.doc.setFont('Ecolier', 'normal');

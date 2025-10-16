@@ -158,8 +158,10 @@ class App {
         const section = document.createElement('div');
         section.className = 'word-section';
         // Encoder le mot pour créer un ID valide (remplacer tous les caractères spéciaux)
-        // Remplacer %XX par des tirets pour avoir un ID HTML valide
-        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        // D'abord remplacer les apostrophes (non encodées par encodeURIComponent)
+        // puis encoder, puis remplacer %XX par des tirets
+        const wordId = encodeURIComponent(word.replace(/'/g, '-'))
+            .replace(/%[0-9A-F]{2}/g, '-');
         section.id = `word-${wordId}`;
         section.dataset.currentPage = '0';  // Pour la pagination
 
@@ -198,7 +200,7 @@ class App {
      * Affiche les images pour un mot (avec pagination)
      */
     displayImagesForWord(word, images, section) {
-        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const wordId = encodeURIComponent(word.replace(/'/g, '-')).replace(/%[0-9A-F]{2}/g, '-');
         const grid = section.querySelector(`#images-${wordId}`);
 
         if (images.length === 0) {
@@ -223,7 +225,7 @@ class App {
      * Affiche une page d'images (3 images)
      */
     displayImagePage(word, section, pageIndex) {
-        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const wordId = encodeURIComponent(word.replace(/'/g, '-')).replace(/%[0-9A-F]{2}/g, '-');
         const grid = section.querySelector(`#images-${wordId}`);
         const allImages = JSON.parse(section.dataset.allImages || '[]');
 
@@ -268,7 +270,7 @@ class App {
      * Gère le clic sur "Plus d'images"
      */
     handleMoreImages(word) {
-        const wordId = encodeURIComponent(word).replace(/%[0-9A-F]{2}/g, '-');
+        const wordId = encodeURIComponent(word.replace(/'/g, '-')).replace(/%[0-9A-F]{2}/g, '-');
         const section = document.getElementById(`word-${wordId}`);
         const allImages = JSON.parse(section.dataset.allImages || '[]');
         const currentPage = parseInt(section.dataset.currentPage || '0');

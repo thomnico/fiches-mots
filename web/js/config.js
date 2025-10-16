@@ -55,7 +55,7 @@ const CONFIG = {
         },
         imageMaxHeight: 141.75, // 5cm
         imageMaxWidth: 198.45,  // 7cm
-        spacing: 42.5           // 1.5cm
+        spacing: 56.70          // 2cm (espacement entre image et texte)
     },
 
     // Nombre d'images à proposer par mot
