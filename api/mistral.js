@@ -65,23 +65,44 @@ export default async function handler(req, res) {
         <langue>Français uniquement</langue>
     </public_cible>
 
-    <exigences>
+    <exigences priority="CRITICAL">
+        <spécificité>
+            ⚠️ RÈGLE ABSOLUE: Propose des EXEMPLES CONCRETS, PAS des catégories générales!
+
+            MAUVAIS exemples (trop généraux):
+            - "sport" → ❌ TOO VAGUE
+            - "animal" → ❌ TOO VAGUE
+            - "fruit" → ❌ TOO VAGUE
+
+            BONS exemples (concrets et spécifiques):
+            - "handball" ✅
+            - "natation" ✅
+            - "escrime" ✅
+            - "chat" ✅
+            - "éléphant" ✅
+            - "pomme" ✅
+            - "banane" ✅
+
+            Chaque mot DOIT être un exemple PRÉCIS que l'on peut dessiner ou photographier.
+        </spécificité>
+
         <vocabulaire>
             - Vocabulaire FRANÇAIS courant et concret
             - Mots du quotidien familiers aux jeunes enfants
-            - PAS de mots abstraits ou complexes
+            - PAS de mots abstraits ou de catégories générales
+            - TOUJOURS des exemples spécifiques
         </vocabulaire>
 
         <types_de_mots>
-            - Préférence: Noms communs simples
+            - Préférence: Noms communs simples et CONCRETS
             - Autorisé: Expressions courtes (2-3 mots max, ex: "feuille d'arbre", "pomme de pin")
-            - INTERDIT: Verbes conjugués, adjectifs complexes
+            - INTERDIT: Verbes conjugués, adjectifs complexes, catégories générales
         </types_de_mots>
 
         <longueur>
             - Mots simples: maximum 12 lettres
             - Expressions: maximum 3 mots
-            - Chaque élément DOIT être représentable par une image simple
+            - Chaque élément DOIT être représentable par une image simple et spécifique
         </longueur>
     </exigences>${excludeWordsXml}
 
@@ -93,18 +114,44 @@ export default async function handler(req, res) {
         - JUSTE les mots/expressions, un par ligne
     </format_sortie>
 
-    <exemple thème="automne">
-        feuille d'arbre
-        champignon
-        citrouille
-        marron
-        pluie
-        arbre
-        écureuil
-        pomme de pin
-        raisin
-        vent d'automne
-    </exemple>
+    <exemples>
+        <exemple thème="automne">
+            feuille d'arbre
+            champignon
+            citrouille
+            marron
+            écureuil
+            pomme de pin
+            raisin
+            châtaigne
+        </exemple>
+
+        <exemple thème="sports">
+            ⚠️ NE PAS écrire "sport" - c'est trop général!
+            À LA PLACE, liste des sports SPÉCIFIQUES:
+            handball
+            natation
+            escrime
+            football
+            tennis
+            judo
+            basketball
+            cyclisme
+        </exemple>
+
+        <exemple thème="animaux de la ferme">
+            ⚠️ NE PAS écrire "animal" - c'est trop général!
+            À LA PLACE, liste des animaux PRÉCIS:
+            vache
+            cochon
+            poule
+            cheval
+            mouton
+            canard
+            lapin
+            chèvre
+        </exemple>
+    </exemples>
 </tâche>
 
 Génère maintenant ${wordCount} mots/expressions FRANÇAIS niveau maternelle pour "${theme}":`;
@@ -124,8 +171,8 @@ Génère maintenant ${wordCount} mots/expressions FRANÇAIS niveau maternelle po
                         content: prompt
                     }
                 ],
-                temperature: 0.7,
-                max_tokens: 200
+                temperature: 0.9, // Augmenté pour plus de variété et créativité
+                max_tokens: 300 // Augmenté pour permettre plus de mots/expressions
             })
         });
 
@@ -156,10 +203,27 @@ Génère maintenant ${wordCount} mots/expressions FRANÇAIS niveau maternelle po
             .filter(line => line.length <= 30) // Filtrer les lignes trop longues (probablement du texte)
             .slice(0, wordCount); // Limiter au nombre demandé
 
+        // Éliminer les doublons (comparaison insensible à la casse)
+        const uniqueWords = [];
+        const seen = new Set();
+
+        for (const word of words) {
+            const normalized = word.toLowerCase().trim();
+            if (!seen.has(normalized)) {
+                seen.add(normalized);
+                uniqueWords.push(word);
+            }
+        }
+
+        // Si on a perdu des mots à cause des doublons, logger l'info
+        if (uniqueWords.length < words.length) {
+            console.log(`⚠️ Doublons supprimés: ${words.length - uniqueWords.length} mot(s)`);
+        }
+
         return res.status(200).json({
             theme,
-            count: words.length,
-            words,
+            count: uniqueWords.length,
+            words: uniqueWords,
             model: 'ministral-3b-latest'
         });
 
