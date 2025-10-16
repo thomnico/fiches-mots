@@ -194,7 +194,37 @@ tests = [
 ]
 ```
 
+## Tests Mistral AI
+
+Une suite dédiée de tests pour l'intégration Mistral AI est disponible dans `test_mistral_api.py`.
+
+### Exécution des tests Mistral
+
+```bash
+# Démarrer Vercel Dev (OBLIGATOIRE pour l'API)
+vercel dev
+
+# Dans un autre terminal
+python tests/test_mistral_api.py
+```
+
+⚠️ Les tests Mistral **nécessitent** Vercel Dev (pas de serveur simple).
+
+### Tests Mistral inclus
+
+1. **API directe** - Teste l'endpoint `/api/mistral`
+2. **Bouton UI** - Vérifie la visibilité du bouton "Générer avec IA"
+3. **Génération simple** - Génère des mots pour un thème
+4. **Nombre custom** - Teste la génération avec un nombre spécifique de mots
+5. **Workflow complet** - Génération + recherche d'images
+6. **Gestion erreurs** - Vérifie le comportement avec thème vide
+7. **Thèmes multiples** - Teste plusieurs générations successives
+8. **Vérification modèle** - Confirme l'utilisation de `open-mistral-7b`
+
+Screenshots sauvegardés dans `web/screenshots/tests/mistral/`.
+
 ## Historique
 
 - **2025-10-16**: Création de la suite de tests
 - **2025-10-16**: Ajout test critique apostrophes (régression issue #1)
+- **2025-10-16**: Ajout suite de tests Mistral AI (8 tests)

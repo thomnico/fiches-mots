@@ -67,7 +67,7 @@ class PDFGenerator {
             // Créer le document PDF
             const { jsPDF } = window.jspdf;
             this.doc = new jsPDF({
-                orientation: 'portrait',
+                orientation: 'landscape',  // Format paysage pour plus d'espace
                 unit: 'pt',
                 format: 'a4'
             });
@@ -112,6 +112,25 @@ class PDFGenerator {
                     await this.drawWordFiche(pageWords[j].word, pageWords[j].imageUrl, j);
                 }
 
+                // Ligne de séparation verticale entre les 2 fiches (si 2 fiches sur la page)
+                if (pageWords.length === 2) {
+                    const cfg = CONFIG.pdf;
+                    const pageWidth = this.doc.internal.pageSize.getWidth();
+                    const pageHeight = this.doc.internal.pageSize.getHeight();
+                    const margin = cfg.margin;
+
+                    this.doc.setDrawColor(200, 200, 200); // Gris clair
+                    this.doc.setLineWidth(1);
+                    this.doc.setLineDash([5, 3]); // Ligne pointillée
+                    this.doc.line(
+                        pageWidth / 2,
+                        margin,
+                        pageWidth / 2,
+                        pageHeight - margin
+                    );
+                    this.doc.setLineDash([]); // Réinitialiser le style de ligne
+                }
+
                 pageCreated = true;
             }
 
@@ -140,23 +159,32 @@ class PDFGenerator {
 
     /**
      * Dessine une fiche pour un mot sur la page
+     * EN PAYSAGE: Layout côte à côte (2 colonnes)
      * @param {string} word - Le mot à afficher
      * @param {string} imageUrl - URL de l'image
-     * @param {number} position - Position sur la page (0 = haut, 1 = bas)
+     * @param {number} position - Position sur la page (0 = gauche, 1 = droite)
      */
     async drawWordFiche(word, imageUrl, position) {
         const cfg = CONFIG.pdf;
-        const pageHeight = cfg.pageHeight;
         const margin = cfg.margin;
 
-        // Espacement entre les 2 mots sur la page (en points)
-        const interWordSpacing = 113.4; // 4cm entre les mots
-        const availableHeight = pageHeight - 2 * margin - interWordSpacing;
-        const wordHeight = availableHeight / 2;
+        // EN PAYSAGE: 2 fiches côte à côte (position 0 = gauche, 1 = droite)
+        const pageWidth = this.doc.internal.pageSize.getWidth();
+        const pageHeight = this.doc.internal.pageSize.getHeight();
 
-        // Position Y de départ pour cette fiche
-        let currentY = margin + (position * (wordHeight + interWordSpacing));
-        const xCenter = cfg.pageWidth / 2;
+        // Largeur disponible pour chaque fiche (moitié de la page)
+        const ficheWidth = (pageWidth - 3 * margin) / 2; // 3 marges: gauche, milieu, droite
+
+        // Position X de la fiche (gauche ou droite)
+        const ficheX = position === 0
+            ? margin  // Fiche gauche
+            : margin * 2 + ficheWidth; // Fiche droite
+
+        // Centre horizontal de la fiche
+        const xCenter = ficheX + ficheWidth / 2;
+
+        // Position Y initiale (haut de la page)
+        let currentY = margin;
 
         // 1. Image (si disponible)
         if (imageUrl && imageUrl !== 'none') {
@@ -170,14 +198,18 @@ class PDFGenerator {
                 const imgHeight = img.height;
 
                 // Calculer les dimensions de l'image en respectant les proportions
+                // En paysage côte à côte, adapter la largeur max à la largeur de la fiche
+                const maxImageWidth = ficheWidth * 0.8; // 80% de la largeur de la fiche
+                const maxImageHeight = cfg.imageMaxHeight;
+
                 const aspect = imgWidth / imgHeight;
                 let width, height;
 
-                if (aspect > cfg.imageMaxWidth / cfg.imageMaxHeight) {
-                    width = cfg.imageMaxWidth;
+                if (aspect > maxImageWidth / maxImageHeight) {
+                    width = Math.min(maxImageWidth, cfg.imageMaxWidth);
                     height = width / aspect;
                 } else {
-                    height = cfg.imageMaxHeight;
+                    height = Math.min(maxImageHeight, cfg.imageMaxHeight);
                     width = height * aspect;
                 }
 

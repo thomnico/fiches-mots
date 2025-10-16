@@ -31,6 +31,12 @@ class App {
         this.btnSearch = document.getElementById('btn-search');
         this.btnBack = document.getElementById('btn-back');
         this.btnGenerate = document.getElementById('btn-generate');
+        this.btnMagic = document.getElementById('btn-magic');
+
+        // Générateur IA
+        this.wordCountSlider = document.getElementById('word-count');
+        this.wordCountValue = document.getElementById('word-count-value');
+        this.aiLoading = document.getElementById('ai-loading');
 
         // Conteneurs
         this.imageSelectionContainer = document.getElementById('image-selection-container');
@@ -46,6 +52,12 @@ class App {
         this.btnSearch.addEventListener('click', () => this.handleSearch());
         this.btnBack.addEventListener('click', () => this.handleBack());
         this.btnGenerate.addEventListener('click', () => this.handleGenerate());
+        this.btnMagic.addEventListener('click', () => this.handleMagicWords());
+
+        // Mise à jour du compteur de mots
+        this.wordCountSlider.addEventListener('input', (e) => {
+            this.wordCountValue.textContent = e.target.value;
+        });
 
         // Délégation d'événements pour les boutons "Plus d'images" (créés dynamiquement)
         this.imageSelectionContainer.addEventListener('click', (e) => {
@@ -65,14 +77,22 @@ class App {
     }
 
     /**
-     * Affiche un message d'erreur
+     * Affiche un message d'erreur ou de succès
      */
-    showError(message) {
+    showError(message, type = 'error') {
         this.errorMessage.textContent = message;
-        this.errorMessage.classList.add('show');
+        this.errorMessage.classList.remove('error', 'success');
+        this.errorMessage.classList.add('show', type);
         setTimeout(() => {
             this.errorMessage.classList.remove('show');
         }, 5000);
+    }
+
+    /**
+     * Masque le message d'erreur/succès
+     */
+    hideError() {
+        this.errorMessage.classList.remove('show');
     }
 
     /**
@@ -334,6 +354,59 @@ class App {
      */
     handleBack() {
         this.showStep(this.stepInput);
+    }
+
+    /**
+     * Gère le clic sur "Le Chat Magique"
+     */
+    async handleMagicWords() {
+        try {
+            // Vérifier que le thème est renseigné
+            const theme = this.themeInput.value.trim();
+            if (!theme) {
+                this.showError('⚠️ Veuillez entrer un thème pour utiliser le Chat Magique');
+                this.themeInput.focus();
+                return;
+            }
+
+            // Récupérer les mots existants pour les exclure
+            const existingWords = this.wordsInput.value
+                .split('\n')
+                .map(w => w.trim())
+                .filter(w => w.length > 0);
+
+            // Récupérer le nombre de mots
+            const wordCount = parseInt(this.wordCountSlider.value);
+
+            console.log(`🪄 Génération de ${wordCount} mots sur le thème "${theme}"...`);
+            if (existingWords.length > 0) {
+                console.log(`🚫 ${existingWords.length} mots à exclure: ${existingWords.join(', ')}`);
+            }
+
+            // Désactiver le bouton et afficher le chargement
+            this.btnMagic.disabled = true;
+            this.aiLoading.style.display = 'block';
+            this.hideError();
+
+            // Appeler l'API Mistral avec les mots à exclure
+            const words = await mistralWordGenerator.generateWords(theme, wordCount, existingWords);
+
+            // Remplacer tout le contenu du textarea
+            this.wordsInput.value = words.join('\n');
+
+            // Message de succès
+            this.showError(`✅ ${words.length} mots générés avec succès !`, 'success');
+
+            console.log('✅ Mots générés:', words);
+
+        } catch (error) {
+            console.error('❌ Erreur génération IA:', error);
+            this.showError(`❌ Erreur: ${error.message}`);
+        } finally {
+            // Réactiver le bouton et masquer le chargement
+            this.btnMagic.disabled = false;
+            this.aiLoading.style.display = 'none';
+        }
     }
 
     /**

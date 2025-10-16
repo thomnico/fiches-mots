@@ -6,20 +6,32 @@
 }
 
 :root {
-    --primary-color: #4A90E2;
-    --secondary-color: #7B68EE;
+    /* Couleurs école maternelle */
+    --primary-color: #FF6B6B;        /* Rouge doux */
+    --secondary-color: #4ECDC4;      /* Turquoise */
+    --accent-yellow: #FFE66D;        /* Jaune crayon */
+    --accent-green: #95E1D3;         /* Vert pastel */
     --success-color: #52C41A;
     --danger-color: #F5222D;
-    --text-color: #333;
-    --bg-color: #F5F7FA;
+    --text-color: #2C3E50;           /* Bleu foncé doux */
+    --bg-color: #FFF8E7;             /* Papier ancien */
     --card-bg: #FFFFFF;
-    --border-radius: 12px;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --border-radius: 16px;           /* Plus arrondi = plus enfantin */
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Comic Sans MS', 'Trebuchet MS', 'Arial Rounded MT Bold', cursive, sans-serif;
+    /* Fond tableau d'école avec lignes */
+    background:
+        repeating-linear-gradient(
+            0deg,
+            #f0f0f0,
+            #f0f0f0 1px,
+            #fafafa 1px,
+            #fafafa 30px
+        ),
+        linear-gradient(135deg, #FFF8E7 0%, #FFE5B4 100%);
     min-height: 100vh;
     padding: 20px;
     color: var(--text-color);
@@ -32,23 +44,57 @@ body {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     padding: 40px;
+    /* Effet cahier avec bord perforé */
+    border-left: 40px solid var(--accent-yellow);
+    border-image: repeating-linear-gradient(
+        to bottom,
+        var(--accent-yellow) 0px,
+        var(--accent-yellow) 20px,
+        transparent 20px,
+        transparent 25px
+    ) 1;
+    position: relative;
+}
+
+.container::before {
+    /* Trous de classeur */
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 50px;
+    width: 10px;
+    height: calc(100% - 100px);
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 40px,
+        #ddd 40px,
+        #ddd 50px
+    );
+    border-radius: 50%;
 }
 
 /* En-tête */
 header {
     text-align: center;
     margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 3px dashed var(--accent-green);
 }
 
 header h1 {
     color: var(--primary-color);
-    font-size: 2.5em;
+    font-size: 2.8em;
     margin-bottom: 10px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+    font-weight: 900;
+    letter-spacing: 1px;
 }
 
 .subtitle {
-    color: #666;
-    font-size: 1.1em;
+    color: var(--secondary-color);
+    font-size: 1.2em;
+    font-weight: 600;
 }
 
 /* Étapes */
@@ -276,26 +322,41 @@ header h1 {
     margin-top: 10px;
 }
 
-/* Messages d'erreur */
+/* Messages d'erreur et succès */
 .error-message {
     display: none;
-    background: #FFF1F0;
-    border: 2px solid var(--danger-color);
     border-radius: 8px;
     padding: 16px;
     margin-top: 20px;
+    font-weight: 600;
+}
+
+.error-message.error {
+    background: #FFF1F0;
+    border: 2px solid var(--danger-color);
     color: var(--danger-color);
+}
+
+.error-message.success {
+    background: #F6FFED;
+    border: 2px solid var(--success-color);
+    color: var(--success-color);
 }
 
 .error-message.show {
     display: block;
-    animation: shake 0.5s;
+    animation: slideIn 0.3s;
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Boutons de pagination */
@@ -325,6 +386,107 @@ header h1 {
 
 .btn-more-images:active {
     transform: translateY(0);
+}
+
+/* Section générateur IA */
+.ai-generator-section {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border: 2px dashed var(--secondary-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin: 24px 0;
+}
+
+.ai-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.form-group-inline label {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.form-group-inline input[type="range"] {
+    flex: 1;
+    min-width: 150px;
+    cursor: pointer;
+}
+
+.form-group-inline span {
+    font-weight: 700;
+    color: var(--secondary-color);
+    font-size: 1.2em;
+    min-width: 30px;
+    text-align: center;
+}
+
+.btn-magic {
+    background: linear-gradient(135deg, #A78BFA 0%, #EC4899 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.btn-magic:hover {
+    background: linear-gradient(135deg, #9333EA 0%, #DB2777 100%);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+    animation: none;
+}
+
+.btn-magic:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    animation: none;
+}
+
+.ai-info {
+    color: var(--text-color);
+    font-size: 0.95em;
+    margin: 10px 0 0 0;
+    background: #FFF9E6;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-yellow);
+    font-weight: 500;
+}
+
+.ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-top: 15px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
 }
 
 /* Responsive */

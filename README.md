@@ -14,9 +14,11 @@ Script automatisé avec recherche d'images via APIs
 ### 🌐 Version Web (Interface graphique)
 Application web interactive sans installation
 - Interface intuitive (aucune compétence technique requise)
+- 🪄 **NOUVEAU** : Générateur IA avec Mistral AI (Le Chat Magique)
+- Génération automatique de listes de mots thématiques
 - Sélection visuelle : 3 images au choix par mot
-- Recherche d'images via Unsplash Source
-- Génération PDF côté client
+- Recherche d'images via Pixabay et Unsplash
+- Génération PDF côté client avec polices dyslexiques
 
 ## ⚡ Démarrage rapide
 

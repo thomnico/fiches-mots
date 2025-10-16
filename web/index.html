@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Fiches Pédagogiques - Maternelle</title>
+    <title>Mes Premières Fiches - Apprendre en s'amusant</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎨 Générateur de Fiches Pédagogiques</h1>
-            <p class="subtitle">Pour la maternelle française - Polices dyslexiques et accessibles</p>
+            <h1>📚 Mes Premières Fiches d'Apprentissage</h1>
+            <p class="subtitle">Apprendre les mots en s'amusant - Maternelle 🎒</p>
         </header>
 
         <!-- Étape 1: Saisie du thème et des mots -->
@@ -25,6 +25,22 @@
             <div class="form-group">
                 <label for="words">Liste de mots (un par ligne)</label>
                 <textarea id="words" rows="8" placeholder="feuille&#10;champignon&#10;citrouille&#10;marron"></textarea>
+            </div>
+
+            <!-- Générateur IA -->
+            <div class="ai-generator-section">
+                <div class="ai-controls">
+                    <div class="form-group-inline">
+                        <label for="word-count">Nombre de mots :</label>
+                        <input type="range" id="word-count" min="5" max="20" value="10" step="1">
+                        <span id="word-count-value">10</span>
+                    </div>
+                    <button id="btn-magic" class="btn btn-magic">🪄 Le Chat Magique</button>
+                </div>
+                <p class="ai-info">💡 Le Chat Magique trouve des mots pour vous ! Les mots déjà présents seront automatiquement exclus de la nouvelle génération.</p>
+                <div id="ai-loading" class="ai-loading" style="display: none;">
+                    <span class="spinner">⏳</span> L'IA génère des mots...
+                </div>
             </div>
 
             <button id="btn-search" class="btn btn-primary">🔍 Rechercher les images</button>
@@ -76,10 +92,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Scripts de l'application -->
-    <script src="js/config.js?v=20251016-spacing3"></script>
+    <script src="js/config.js?v=20251016-mistral"></script>
     <!-- MODE SERVERLESS: Les clés API sont dans les variables d'environnement Vercel -->
-    <script src="js/imageSearch.serverless.js?v=20251016-spacing3"></script>
-    <script src="js/pdfGenerator.js?v=20251016-spacing3"></script>
-    <script src="js/app.js?v=20251016-spacing3"></script>
+    <script src="js/imageSearch.serverless.js?v=20251016-mistral"></script>
+    <script src="js/mistralAI.js?v=20251016-mistral"></script>
+    <script src="js/pdfGenerator.js?v=20251016-mistral"></script>
+    <script src="js/app.js?v=20251016-mistral"></script>
 </body>
 </html>
