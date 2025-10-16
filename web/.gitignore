@@ -1,0 +1,10 @@
+# Configuration des clés API (ne jamais committer!)
+js/config.api.js
+
+# Screenshots de test
+screenshots/
+
+# Fichiers temporaires
+*.log
+*.tmp
+.DS_Store
