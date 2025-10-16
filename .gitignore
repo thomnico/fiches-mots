@@ -22,3 +22,20 @@ output/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+# Variables d'environnement (IMPORTANT: NE JAMAIS COMMITTER!)
+.env
+.env.local
+.env.production
+
+# Configuration locale avec clés API
+web/js/config.api.js
+
+# Vercel
+.vercel
+
+# Tests screenshots
+web/screenshots/
+
+# Logs
+*.log
