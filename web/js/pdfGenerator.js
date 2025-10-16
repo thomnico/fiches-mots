@@ -254,9 +254,13 @@ class PDFGenerator {
         this.doc.text(word.toLowerCase(), xCenter, scriptY, { align: 'center' });
 
         // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND) - Position FIXE
+        // La police Écolier ne supporte pas Œ/œ, on les remplace par OE/oe
+        const cursiveWord = word.toLowerCase()
+            .replace(/œ/g, 'oe')
+            .replace(/Œ/g, 'oe'); // Déjà en lowercase, mais par sécurité
         this.doc.setFont('Ecolier', 'normal');
         this.doc.setFontSize(cfg.fontSize.cursive);
-        this.doc.text(word.toLowerCase(), xCenter, cursiveY, { align: 'center' });
+        this.doc.text(cursiveWord, xCenter, cursiveY, { align: 'center' });
     }
 
     /**
