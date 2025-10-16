@@ -199,8 +199,8 @@ class PDFGenerator {
 
                 // Calculer les dimensions de l'image en respectant les proportions
                 // En paysage côte à côte, adapter la largeur max à la largeur de la fiche
-                const maxImageWidth = ficheWidth * 1.04; // 104% de la largeur de la fiche (+30% vs 80%)
-                const maxImageHeight = cfg.imageMaxHeight * 1.3; // +30% en hauteur aussi
+                const maxImageWidth = ficheWidth * 1.35; // 135% de la largeur de la fiche (+30% supplémentaires = +69% vs original 80%)
+                const maxImageHeight = cfg.imageMaxHeight * 1.69; // +69% total en hauteur (1.3 * 1.3 = 1.69)
 
                 const aspect = imgWidth / imgHeight;
                 let width, height;
