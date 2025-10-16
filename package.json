@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Générateur de fiches pédagogiques pour la maternelle",
   "scripts": {
-    "dev": "vercel dev",
     "deploy": "vercel",
     "deploy:prod": "vercel --prod"
   },
