@@ -219,7 +219,7 @@ python tests/test_mistral_api.py
 5. **Workflow complet** - Génération + recherche d'images
 6. **Gestion erreurs** - Vérifie le comportement avec thème vide
 7. **Thèmes multiples** - Teste plusieurs générations successives
-8. **Vérification modèle** - Confirme l'utilisation de `open-mistral-7b`
+8. **Vérification modèle** - Confirme l'utilisation de `ministral-3b-latest` (6x moins cher!)
 
 Screenshots sauvegardés dans `web/screenshots/tests/mistral/`.
 

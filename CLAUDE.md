@@ -149,8 +149,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     </development>
 
     <testing>
-      <note>Pas de tests unitaires actuellement. Vérification manuelle du PDF généré.</note>
+      <command>
+        <name>run_playwright_tests</name>
+        <usage>python tests/test_mistral_api.py</usage>
+        <description>Lance les tests Playwright pour l'intégration Mistral AI</description>
+        <coverage>8 tests: API directe, UI, génération, workflow, erreurs, modèle</coverage>
+      </command>
     </testing>
+
+    <deployment>
+      <platform>Vercel</platform>
+      <workflow>
+        <step number="1">Commit et push les changements vers GitHub</step>
+        <step number="2">Vercel détecte automatiquement les changements sur main</step>
+        <step number="3">Déploiement automatique en production</step>
+      </workflow>
+      <note priority="HIGH">
+        ⚠️ PAS BESOIN de 'vercel --prod' - Vercel prend le code directement depuis GitHub!
+        Le déploiement est automatique dès le push sur la branche main.
+      </note>
+      <commands>
+        <command>
+          <name>push_to_deploy</name>
+          <usage>git add . &amp;&amp; git commit -m "message" &amp;&amp; git push</usage>
+          <description>Push vers GitHub déclenche le déploiement Vercel automatique</description>
+        </command>
+        <command>
+          <name>list_deployments</name>
+          <usage>vercel ls</usage>
+          <description>Liste tous les déploiements Vercel</description>
+        </command>
+        <command>
+          <name>remove_deployment</name>
+          <usage>vercel rm [deployment-url] --yes</usage>
+          <description>Supprime un déploiement obsolète</description>
+        </command>
+      </commands>
+    </deployment>
   </commands>
 
   <workflow>

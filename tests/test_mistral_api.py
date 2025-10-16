@@ -61,7 +61,7 @@ def test_mistral_api_direct(page):
     assert isinstance(data["words"], list), "'words' n'est pas une liste"
     assert len(data["words"]) > 0, "Liste de mots vide"
     assert data["theme"] == "animaux", f"Thème incorrect: {data['theme']}"
-    assert data["model"] == "open-mistral-7b", f"Modèle incorrect: {data['model']}"
+    assert data["model"] == "ministral-3b-latest", f"Modèle incorrect: {data['model']}"
 
     print(f"   ✅ API fonctionne: {len(data['words'])} mots générés")
     print(f"   Mots: {', '.join(data['words'][:5])}")
@@ -252,7 +252,7 @@ def test_mistral_multiple_themes(page):
 
 def test_mistral_api_model_verification(page):
     """Test 8: Vérifier que le bon modèle est utilisé"""
-    print("\n📝 Test 8: Vérification du modèle (open-mistral-7b)")
+    print("\n📝 Test 8: Vérification du modèle (ministral-3b-latest)")
 
     response = page.request.post(
         f"{TestConfig.APP_URL}/api/mistral",
@@ -268,11 +268,11 @@ def test_mistral_api_model_verification(page):
 
     # Vérifier le modèle
     assert "model" in data, "Pas de champ 'model' dans la réponse"
-    assert data["model"] == "open-mistral-7b", \
-        f"Modèle incorrect: {data['model']} (attendu: open-mistral-7b)"
+    assert data["model"] == "ministral-3b-latest", \
+        f"Modèle incorrect: {data['model']} (attendu: ministral-3b-latest)"
 
     print(f"   ✅ Modèle correct: {data['model']}")
-    print(f"   💰 Modèle économique confirmé (0.25€/1M tokens)")
+    print(f"   💰 Modèle économique confirmé (0.04€/1M tokens - 6x moins cher!)")
 
     return True
 
