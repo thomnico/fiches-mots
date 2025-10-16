@@ -46,6 +46,14 @@ class App {
         this.btnSearch.addEventListener('click', () => this.handleSearch());
         this.btnBack.addEventListener('click', () => this.handleBack());
         this.btnGenerate.addEventListener('click', () => this.handleGenerate());
+
+        // Délégation d'événements pour les boutons "Plus d'images" (créés dynamiquement)
+        this.imageSelectionContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-more-images')) {
+                const word = e.target.dataset.word;
+                this.handleMoreImages(word);
+            }
+        });
     }
 
     /**
@@ -150,12 +158,18 @@ class App {
         const section = document.createElement('div');
         section.className = 'word-section';
         section.id = `word-${word}`;
+        section.dataset.currentPage = '0';  // Pour la pagination
 
         section.innerHTML = `
             <h3>📝 ${word}</h3>
             <p>Sélectionnez une image parmi les propositions :</p>
             <div class="images-grid" id="images-${word}">
                 ${this.createLoadingSpinners()}
+            </div>
+            <div class="pagination-buttons" style="display: none; margin-top: 15px; text-align: center;">
+                <button class="btn-more-images" data-word="${word}">
+                    ➡️ Voir plus d'images
+                </button>
             </div>
         `;
 
@@ -178,25 +192,51 @@ class App {
     }
 
     /**
-     * Affiche les images pour un mot
+     * Affiche les images pour un mot (avec pagination)
      */
     displayImagesForWord(word, images, section) {
         const grid = section.querySelector(`#images-${word}`);
-        grid.innerHTML = '';
 
         if (images.length === 0) {
             grid.innerHTML = '<p style="color: #999;">Aucune image trouvée</p>';
             return;
         }
 
-        images.forEach((imageUrl, index) => {
+        // Stocker toutes les images dans la section pour la pagination
+        section.dataset.allImages = JSON.stringify(images);
+
+        // Afficher la première page (3 premières images)
+        this.displayImagePage(word, section, 0);
+
+        // Afficher le bouton "Plus d'images" s'il y a plus de 3 images
+        const paginationButtons = section.querySelector('.pagination-buttons');
+        if (images.length > CONFIG.imagesPerWord) {
+            paginationButtons.style.display = 'block';
+        }
+    }
+
+    /**
+     * Affiche une page d'images (3 images)
+     */
+    displayImagePage(word, section, pageIndex) {
+        const grid = section.querySelector(`#images-${word}`);
+        const allImages = JSON.parse(section.dataset.allImages || '[]');
+
+        // Calculer les indices de début et fin
+        const startIndex = pageIndex * CONFIG.imagesPerWord;
+        const endIndex = startIndex + CONFIG.imagesPerWord;
+        const pageImages = allImages.slice(startIndex, endIndex);
+
+        grid.innerHTML = '';
+
+        pageImages.forEach((imageUrl, index) => {
             const imageOption = document.createElement('div');
             imageOption.className = 'image-option';
             imageOption.dataset.word = word;
             imageOption.dataset.url = imageUrl;
 
             imageOption.innerHTML = `
-                <img src="${imageUrl}" alt="${word} ${index + 1}"
+                <img src="${imageUrl}" alt="${word} ${startIndex + index + 1}"
                      onerror="this.src='https://via.placeholder.com/400x300/CCCCCC/666666?text=Image+non+disponible'">
                 <div class="checkmark">✓</div>
             `;
@@ -213,6 +253,51 @@ class App {
 
             grid.appendChild(imageOption);
         });
+
+        // Mettre à jour le bouton selon s'il reste des images
+        section.dataset.currentPage = pageIndex.toString();
+        this.updateMoreImagesButton(word, section);
+    }
+
+    /**
+     * Gère le clic sur "Plus d'images"
+     */
+    handleMoreImages(word) {
+        const section = document.getElementById(`word-${word}`);
+        const allImages = JSON.parse(section.dataset.allImages || '[]');
+        const currentPage = parseInt(section.dataset.currentPage || '0');
+
+        // Page suivante (循环)
+        const nextPage = currentPage + 1;
+        const maxPages = Math.ceil(allImages.length / CONFIG.imagesPerWord);
+
+        // Si on arrive à la fin, revenir au début
+        const newPage = nextPage >= maxPages ? 0 : nextPage;
+
+        console.log(`➡️  "${word}": Page ${newPage + 1}/${maxPages}`);
+
+        // Afficher la nouvelle page
+        this.displayImagePage(word, section, newPage);
+    }
+
+    /**
+     * Met à jour le bouton "Plus d'images"
+     */
+    updateMoreImagesButton(word, section) {
+        const allImages = JSON.parse(section.dataset.allImages || '[]');
+        const currentPage = parseInt(section.dataset.currentPage || '0');
+        const maxPages = Math.ceil(allImages.length / CONFIG.imagesPerWord);
+
+        const button = section.querySelector('.btn-more-images');
+        if (button) {
+            // Texte du bouton avec indication de la page
+            const nextPage = currentPage + 1;
+            if (nextPage >= maxPages) {
+                button.textContent = `⬅️ Retour aux premières images`;
+            } else {
+                button.textContent = `➡️ Voir plus d'images (${nextPage + 1}/${maxPages})`;
+            }
+        }
     }
 
     /**

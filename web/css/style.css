@@ -298,6 +298,35 @@ header h1 {
     75% { transform: translateX(10px); }
 }
 
+/* Boutons de pagination */
+.pagination-buttons {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-more-images {
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.btn-more-images:hover {
+    background: #3A7BC8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.btn-more-images:active {
+    transform: translateY(0);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -317,6 +346,10 @@ header h1 {
     }
 
     .btn {
+        width: 100%;
+    }
+
+    .btn-more-images {
         width: 100%;
     }
 }

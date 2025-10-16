@@ -36,27 +36,39 @@ class ImageSearcher {
             // NOUVEAU: Rechercher en FRANÇAIS directement
             // Les APIs Pixabay et Unsplash supportent le français!
 
+            // IMPORTANT: On récupère BEAUCOUP plus d'images pour permettre la pagination
+            // On affichera 3 images à la fois, mais on en récupère jusqu'à 20
+            const minImagesForPagination = CONFIG.imagesPerWord * 3; // Au moins 9 images
+
             // 1. Essayer Pixabay d'abord (meilleur pour illustrations/cliparts)
             const pixabayImages = await this.searchPixabayOptimized(word, theme);
-            if (pixabayImages && pixabayImages.length >= CONFIG.imagesPerWord) {
+            if (pixabayImages && pixabayImages.length > 0) {
                 console.log(`✅ Pixabay: ${pixabayImages.length} images trouvées pour "${word}"`);
-                return pixabayImages.slice(0, CONFIG.imagesPerWord);
+
+                // Si on a assez d'images Pixabay, utiliser uniquement Pixabay
+                if (pixabayImages.length >= CONFIG.imagesPerWord) {
+                    return pixabayImages; // Retourner TOUTES les images trouvées (jusqu'à 20)
+                }
             }
 
             console.log(`⚠️  Pas assez d'images Pixabay, essai Unsplash...`);
 
             // 2. Fallback Unsplash
             const unsplashImages = await this.searchUnsplashOptimized(word, theme);
-            if (unsplashImages && unsplashImages.length >= CONFIG.imagesPerWord) {
+            if (unsplashImages && unsplashImages.length > 0) {
                 console.log(`✅ Unsplash: ${unsplashImages.length} images trouvées pour "${word}"`);
-                return unsplashImages.slice(0, CONFIG.imagesPerWord);
+
+                // Si on a assez d'images Unsplash, utiliser uniquement Unsplash
+                if (unsplashImages.length >= CONFIG.imagesPerWord) {
+                    return unsplashImages; // Retourner TOUTES les images trouvées
+                }
             }
 
-            // 3. Combiner les résultats si on n'a pas assez
+            // 3. Combiner les résultats si nécessaire
             const combinedImages = [...(pixabayImages || []), ...(unsplashImages || [])];
-            if (combinedImages.length >= CONFIG.imagesPerWord) {
+            if (combinedImages.length > 0) {
                 console.log(`✅ Combiné: ${combinedImages.length} images de Pixabay + Unsplash`);
-                return combinedImages.slice(0, CONFIG.imagesPerWord);
+                return combinedImages; // Retourner TOUTES les images combinées
             }
 
             console.log(`⚠️  Pas assez d'images, utilisation des placeholders`);

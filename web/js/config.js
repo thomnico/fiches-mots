@@ -50,8 +50,8 @@ const CONFIG = {
         margin: 56.7,       // 2cm in points
         fontSize: {
             capital: 32,
-            script: 28,
-            cursive: 32
+            script: 36,     // +30% (28 * 1.3 ≈ 36)
+            cursive: 64     // +100% (32 * 2 = 64)
         },
         imageMaxHeight: 141.75, // 5cm
         imageMaxWidth: 198.45,  // 7cm

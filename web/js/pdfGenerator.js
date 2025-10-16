@@ -117,11 +117,20 @@ class PDFGenerator {
 
             progressCallback(100);
 
-            // Télécharger le PDF
+            // Ouvrir le PDF dans un nouvel onglet au lieu de le télécharger
             const filename = theme ? `fiches_${theme}.pdf` : 'fiches_maternelle.pdf';
-            this.doc.save(filename);
 
-            console.log('✅ PDF généré avec succès:', filename);
+            // Générer le blob PDF
+            const pdfBlob = this.doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            // Ouvrir dans un nouvel onglet
+            window.open(pdfUrl, '_blank');
+
+            console.log('✅ PDF généré et ouvert dans un nouvel onglet:', filename);
+
+            // Libérer l'URL après un court délai
+            setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
 
         } catch (error) {
             console.error('❌ Erreur génération PDF:', error);
@@ -195,15 +204,15 @@ class PDFGenerator {
         this.doc.setFontSize(cfg.fontSize.capital);
         this.doc.setTextColor(0, 0, 0);
         this.doc.text(word.toUpperCase(), xCenter, currentY, { align: 'center' });
-        currentY += 34;
+        currentY += 40;
 
-        // 3. Mot en script (OpenDyslexic, 28pt)
+        // 3. Mot en script (OpenDyslexic, 36pt)
         this.doc.setFont('OpenDyslexic', 'normal');
         this.doc.setFontSize(cfg.fontSize.script);
         this.doc.text(word.toLowerCase(), xCenter, currentY, { align: 'center' });
-        currentY += 34;
+        currentY += 48;
 
-        // 4. Mot en cursif (Écolier, 32pt)
+        // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND)
         this.doc.setFont('Ecolier', 'normal');
         this.doc.setFontSize(cfg.fontSize.cursive);
         this.doc.text(word.toLowerCase(), xCenter, currentY, { align: 'center' });
