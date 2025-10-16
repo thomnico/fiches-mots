@@ -117,7 +117,7 @@ Génère maintenant ${wordCount} mots/expressions FRANÇAIS niveau maternelle po
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'open-mistral-7b', // Modèle le plus économique (0.25€/1M tokens)
+                model: 'open-mistral-7b', // Modèle le MOINS CHER (0.25€/1M tokens - 7B paramètres)
                 messages: [
                     {
                         role: 'user',
@@ -125,7 +125,7 @@ Génère maintenant ${wordCount} mots/expressions FRANÇAIS niveau maternelle po
                     }
                 ],
                 temperature: 0.7,
-                max_tokens: 500
+                max_tokens: 200  // Réduit de 500 à 200 pour économiser encore plus
             })
         });
 
