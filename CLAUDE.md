@@ -192,10 +192,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <step number="1">Commit et push les changements vers GitHub</step>
         <step number="2">Vercel détecte automatiquement les changements sur main</step>
         <step number="3">Déploiement automatique en production</step>
+        <step number="4">TOUJOURS nettoyer les anciens déploiements (> 1h)</step>
       </workflow>
       <note priority="HIGH">
         ⚠️ PAS BESOIN de 'vercel --prod' - Vercel prend le code directement depuis GitHub!
         Le déploiement est automatique dès le push sur la branche main.
+      </note>
+      <note priority="CRITICAL">
+        🧹 NETTOYAGE AUTOMATIQUE REQUIS
+        - Après chaque déploiement, TOUJOURS supprimer les déploiements de plus d'1 heure
+        - Garder UNIQUEMENT le déploiement le plus récent
+        - Utiliser 'vercel ls' pour lister puis 'vercel rm' pour chaque ancien déploiement
+        - Cela évite l'accumulation de déploiements inutiles
       </note>
       <commands>
         <command>
@@ -209,9 +217,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
           <description>Liste tous les déploiements Vercel</description>
         </command>
         <command>
+          <name>remove_old_deployments</name>
+          <usage>vercel ls | grep -E "[0-9]+h|[0-9]+d" | awk '{print $2}' | xargs -I {} vercel rm {} --yes</usage>
+          <description>Supprime automatiquement tous les déploiements de plus d'1 heure</description>
+          <note>Cette commande doit être exécutée après chaque push réussi</note>
+        </command>
+        <command>
           <name>remove_deployment</name>
           <usage>vercel rm [deployment-url] --yes</usage>
-          <description>Supprime un déploiement obsolète</description>
+          <description>Supprime un déploiement spécifique</description>
+        </command>
+        <command>
+          <name>complete_deploy_workflow</name>
+          <usage>git push &amp;&amp; sleep 10 &amp;&amp; vercel ls | tail -n +3 | head -n -1 | tail -n +2 | awk '{print $2}' | xargs -I {} vercel rm {} --yes</usage>
+          <description>Workflow complet: push + attendre + nettoyer anciens déploiements</description>
+          <note>Garde uniquement le déploiement le plus récent</note>
         </command>
       </commands>
     </deployment>
