@@ -22,15 +22,29 @@ class PDFGenerator {
             console.log('📦 Chargement des polices...');
 
             // Charger les fichiers TTF en base64 (chemins absolus depuis racine)
-            this.fonts.capital = await this.loadFontFile('/fonts/capital.ttf');
-            this.fonts.script = await this.loadFontFile('/fonts/script.ttf');
-            this.fonts.cursive = await this.loadFontFile('/fonts/cursive.ttf');
+            const [capital, script, cursive] = await Promise.all([
+                this.loadFontFile('/fonts/capital.ttf'),
+                this.loadFontFile('/fonts/script.ttf'),
+                this.loadFontFile('/fonts/cursive.ttf')
+            ]);
+
+            // Vérifier que les polices sont bien chargées
+            if (!capital || !script || !cursive) {
+                throw new Error('Une ou plusieurs polices sont vides');
+            }
+
+            this.fonts.capital = capital;
+            this.fonts.script = script;
+            this.fonts.cursive = cursive;
 
             console.log('✅ Polices chargées avec succès');
+            console.log(`   - Capital: ${capital.length} bytes`);
+            console.log(`   - Script: ${script.length} bytes`);
+            console.log(`   - Cursive: ${cursive.length} bytes`);
 
         } catch (error) {
             console.error('❌ Erreur chargement des polices:', error);
-            throw new Error('Impossible de charger les polices');
+            throw new Error(`Impossible de charger les polices: ${error.message}`);
         }
     }
 
@@ -40,17 +54,37 @@ class PDFGenerator {
      * @returns {Promise<string>} - Police en base64
      */
     async loadFontFile(url) {
+        console.log(`   Chargement: ${url}`);
+
         const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Échec chargement ${url}: ${response.status} ${response.statusText}`);
+        }
+
         const blob = await response.blob();
+
+        if (blob.size === 0) {
+            throw new Error(`Fichier vide: ${url}`);
+        }
+
+        console.log(`   → Taille: ${blob.size} bytes`);
 
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 // Extraire seulement la partie base64
                 const base64 = reader.result.split(',')[1];
+
+                if (!base64 || base64.length === 0) {
+                    reject(new Error(`Base64 vide pour ${url}`));
+                    return;
+                }
+
+                console.log(`   → Base64: ${base64.length} caractères`);
                 resolve(base64);
             };
-            reader.onerror = reject;
+            reader.onerror = () => reject(new Error(`Erreur lecture ${url}`));
             reader.readAsDataURL(blob);
         });
     }
