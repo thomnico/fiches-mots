@@ -298,8 +298,8 @@ def run_all_tests():
     results = []
 
     with sync_playwright() as p:
-        print("\n🌐 Lancement du navigateur...")
-        browser = p.chromium.launch(headless=False)
+        print("\n🌐 Lancement du navigateur Firefox...")
+        browser = p.firefox.launch(headless=False)
         context = browser.new_context(viewport={'width': 1280, 'height': 800})
 
         for test_name, test_func in tests:

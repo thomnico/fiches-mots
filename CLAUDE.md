@@ -35,8 +35,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       - Always filter for child-appropriate, educational content
     </rule>
     <rule id="mobile_responsive">
-      📱 MOBILE-FIRST REQUIREMENT
+      📱 RESPONSIVE DESIGN REQUIREMENT
       - Application MUST be fully responsive and work correctly on mobile devices
+      - Desktop-first approach, but must adapt gracefully to mobile
       - Test on various screen sizes (phones, tablets, desktop)
       - Touch interactions must be optimized for mobile usage
       - UI elements must be properly sized for touch screens
@@ -157,6 +158,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     </development>
 
     <testing>
+      <browser>Firefox (Playwright)</browser>
+      <note>Tous les tests Playwright utilisent Firefox (déjà installé)</note>
       <command>
         <name>run_playwright_tests</name>
         <usage>python tests/test_mistral_api.py</usage>
@@ -168,6 +171,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <usage>python tests/test_mobile.py</usage>
         <description>Lance les tests Playwright pour la compatibilité mobile</description>
         <coverage>Tests de réactivité, interactions tactiles, API Mistral sur mobile</coverage>
+      </command>
+      <command>
+        <name>run_pdf_tests</name>
+        <usage>python tests/test_pdf_generation.py</usage>
+        <description>Lance les tests Playwright pour la génération PDF (desktop et mobile)</description>
+        <coverage>3 tests × 3 plateformes (Desktop, iPhone 12, Pixel 5): workflow complet, création blob, fallback téléchargement</coverage>
+        <features>
+          <feature>Timeouts adaptés pour réseau lent (60-90s)</feature>
+          <feature>Retry automatique (3 tentatives avec délai 2s)</feature>
+          <feature>Skip intelligent si problème réseau persistant</feature>
+          <feature>Screenshots de debug automatiques</feature>
+        </features>
       </command>
     </testing>
 
@@ -261,14 +276,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       </solutions>
     </issue>
 
-    <issue type="mistral_api_mobile" priority="HIGH">
-      <symptom>⚠️ L'appel à l'API Mistral ne fonctionne pas correctement sur mobile</symptom>
-      <context>Bug connu avec l'interface web mobile - nécessite investigation et correction</context>
+    <issue type="pdf_generation_mobile" priority="FIXED">
+      <symptom>✅ CORRIGÉ: Le PDF ne s'affichait pas dans le browser et ne se créait pas sur mobile</symptom>
+      <root_cause>
+        - window.open() bloqué par les popup blockers sur mobile
+        - URL.revokeObjectURL() appelé trop rapidement (1s)
+        - Absence de fallback si popup bloqué
+      </root_cause>
+      <solution_implemented>
+        <change file="web/js/pdfGenerator.js">
+          - Détection mobile: téléchargement direct sur mobile (plus fiable)
+          - Détection desktop: window.open() avec fallback vers téléchargement si bloqué
+          - Nouvelle méthode downloadPDF() compatible iOS/Android
+          - Timeout URL.revokeObjectURL() prolongé à 10s pour connexions lentes
+        </change>
+      </solution_implemented>
+      <testing>
+        <test>tests/test_pdf_generation.py - 9 tests (3 tests × 3 plateformes)</test>
+        <test>Vérification création blob, ouverture popup, fallback téléchargement</test>
+        <test>Timeouts adaptés pour réseau lent avec retry automatique</test>
+      </testing>
+    </issue>
+
+    <issue type="mistral_api_mobile" priority="MONITORED">
+      <symptom>⚠️ L'appel à l'API Mistral peut être instable sur mobile avec connexion lente</symptom>
+      <context>Peut nécessiter des timeouts plus longs et retry sur mobile</context>
       <solutions>
-        <solution>Vérifier les headers de requête mobile vs desktop</solution>
-        <solution>Tester avec différents navigateurs mobiles (Safari iOS, Chrome Android)</solution>
-        <solution>Implémenter une gestion d'erreurs spécifique mobile</solution>
-        <solution>Considérer un timeout plus long pour les connexions mobiles</solution>
+        <solution>✅ Timeouts augmentés (45s pour API Mistral)</solution>
+        <solution>✅ Retry automatique (2 tentatives) implémenté dans mistralAI.js</solution>
+        <solution>✅ Gestion d'erreurs réseau spécifique mobile</solution>
         <solution>Vérifier les CORS et les restrictions réseau mobile</solution>
       </solutions>
       <testing>
@@ -276,6 +312,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <test>Tester avec émulation mobile dans les DevTools navigateur</test>
         <test>Tester sur de vrais appareils physiques (iOS et Android)</test>
       </testing>
+    </issue>
+
+    <issue type="network_timeout" priority="HANDLED">
+      <symptom>Timeouts lors de la recherche d'images avec connexion lente</symptom>
+      <solutions>
+        <solution>✅ Tous les tests implémentent retry automatique (3 tentatives)</solution>
+        <solution>✅ Timeouts adaptés: 60s opérations PDF, 90s recherche images</solution>
+        <solution>✅ Skip intelligent si problème réseau persistant (ne fait pas échouer la suite)</solution>
+        <solution>✅ Messages informatifs pour diagnostiquer les problèmes réseau</solution>
+      </solutions>
     </issue>
   </troubleshooting>
 

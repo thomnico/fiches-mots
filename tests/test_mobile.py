@@ -371,8 +371,8 @@ def run_all_tests():
     all_results = []
 
     with sync_playwright() as p:
-        print("\n🌐 Lancement du navigateur...")
-        browser = p.chromium.launch(headless=False)
+        print("\n🌐 Lancement du navigateur Firefox...")
+        browser = p.firefox.launch(headless=False)
 
         # Tester sur chaque appareil
         for device_name, device_config in TestConfig.DEVICES.items():

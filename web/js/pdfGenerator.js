@@ -21,10 +21,10 @@ class PDFGenerator {
         try {
             console.log('📦 Chargement des polices...');
 
-            // Charger les fichiers TTF en base64
-            this.fonts.capital = await this.loadFontFile('../fonts/capital.ttf');
-            this.fonts.script = await this.loadFontFile('../fonts/script.ttf');
-            this.fonts.cursive = await this.loadFontFile('../fonts/cursive.ttf');
+            // Charger les fichiers TTF en base64 (chemins absolus depuis racine)
+            this.fonts.capital = await this.loadFontFile('/fonts/capital.ttf');
+            this.fonts.script = await this.loadFontFile('/fonts/script.ttf');
+            this.fonts.cursive = await this.loadFontFile('/fonts/cursive.ttf');
 
             console.log('✅ Polices chargées avec succès');
 
@@ -136,20 +136,39 @@ class PDFGenerator {
 
             progressCallback(100);
 
-            // Ouvrir le PDF dans un nouvel onglet au lieu de le télécharger
+            // Générer le PDF
             const filename = theme ? `fiches_${theme}.pdf` : 'fiches_maternelle.pdf';
-
-            // Générer le blob PDF
             const pdfBlob = this.doc.output('blob');
             const pdfUrl = URL.createObjectURL(pdfBlob);
 
-            // Ouvrir dans un nouvel onglet
-            window.open(pdfUrl, '_blank');
+            // Stratégie multi-plateforme pour afficher/télécharger le PDF
+            // 1. Essayer d'ouvrir dans un nouvel onglet (desktop)
+            // 2. Si bloqué, déclencher un téléchargement (mobile, popup blockers)
 
-            console.log('✅ PDF généré et ouvert dans un nouvel onglet:', filename);
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            // Libérer l'URL après un court délai
-            setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+            if (isMobile) {
+                // Sur mobile: Téléchargement direct (plus fiable que window.open)
+                console.log('📱 Mobile détecté - Téléchargement du PDF...');
+                this.downloadPDF(pdfBlob, filename);
+                console.log('✅ PDF téléchargé:', filename);
+            } else {
+                // Sur desktop: Essayer d'ouvrir dans un nouvel onglet
+                console.log('🖥️  Desktop - Ouverture du PDF dans un nouvel onglet...');
+                const newWindow = window.open(pdfUrl, '_blank');
+
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    // Popup bloqué - fallback vers téléchargement
+                    console.log('⚠️  Popup bloqué - Fallback vers téléchargement');
+                    this.downloadPDF(pdfBlob, filename);
+                    console.log('✅ PDF téléchargé:', filename);
+                } else {
+                    console.log('✅ PDF ouvert dans un nouvel onglet:', filename);
+                }
+            }
+
+            // Libérer l'URL après 10 secondes (plus sûr pour les connexions lentes)
+            setTimeout(() => URL.revokeObjectURL(pdfUrl), 10000);
 
         } catch (error) {
             console.error('❌ Erreur génération PDF:', error);
@@ -170,7 +189,6 @@ class PDFGenerator {
 
         // EN PAYSAGE: 2 fiches côte à côte (position 0 = gauche, 1 = droite)
         const pageWidth = this.doc.internal.pageSize.getWidth();
-        const pageHeight = this.doc.internal.pageSize.getHeight();
 
         // Largeur disponible pour chaque fiche (moitié de la page)
         const ficheWidth = (pageWidth - 3 * margin) / 2; // 3 marges: gauche, milieu, droite
@@ -276,6 +294,30 @@ class PDFGenerator {
             img.onerror = reject;
             img.src = src;
         });
+    }
+
+    /**
+     * Télécharge le PDF via un lien temporaire
+     * Compatible avec tous les navigateurs (desktop et mobile)
+     * @param {Blob} blob - Le blob PDF
+     * @param {string} filename - Nom du fichier
+     */
+    downloadPDF(blob, filename) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+
+        // Ajouter temporairement au DOM pour compatibilité iOS
+        document.body.appendChild(link);
+
+        // Déclencher le téléchargement
+        link.click();
+
+        // Nettoyer
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }, 100);
     }
 }
 
