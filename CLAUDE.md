@@ -34,6 +34,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       - Never skip image search steps
       - Always filter for child-appropriate, educational content
     </rule>
+    <rule id="mobile_responsive">
+      📱 MOBILE-FIRST REQUIREMENT
+      - Application MUST be fully responsive and work correctly on mobile devices
+      - Test on various screen sizes (phones, tablets, desktop)
+      - Touch interactions must be optimized for mobile usage
+      - UI elements must be properly sized for touch screens
+      - All features must work seamlessly on mobile browsers
+    </rule>
   </critical_rules>
 
   <overview>
@@ -155,6 +163,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <description>Lance les tests Playwright pour l'intégration Mistral AI</description>
         <coverage>8 tests: API directe, UI, génération, workflow, erreurs, modèle</coverage>
       </command>
+      <command>
+        <name>run_mobile_tests</name>
+        <usage>python tests/test_mobile.py</usage>
+        <description>Lance les tests Playwright pour la compatibilité mobile</description>
+        <coverage>Tests de réactivité, interactions tactiles, API Mistral sur mobile</coverage>
+      </command>
     </testing>
 
     <deployment>
@@ -245,6 +259,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <solution>Installer des polices .ttf personnalisées dans fonts/</solution>
         <solution>Nommer les fichiers : cursive.ttf et script.ttf</solution>
       </solutions>
+    </issue>
+
+    <issue type="mistral_api_mobile" priority="HIGH">
+      <symptom>⚠️ L'appel à l'API Mistral ne fonctionne pas correctement sur mobile</symptom>
+      <context>Bug connu avec l'interface web mobile - nécessite investigation et correction</context>
+      <solutions>
+        <solution>Vérifier les headers de requête mobile vs desktop</solution>
+        <solution>Tester avec différents navigateurs mobiles (Safari iOS, Chrome Android)</solution>
+        <solution>Implémenter une gestion d'erreurs spécifique mobile</solution>
+        <solution>Considérer un timeout plus long pour les connexions mobiles</solution>
+        <solution>Vérifier les CORS et les restrictions réseau mobile</solution>
+      </solutions>
+      <testing>
+        <test>Utiliser tests/test_mobile.py pour reproduire et debugger le problème</test>
+        <test>Tester avec émulation mobile dans les DevTools navigateur</test>
+        <test>Tester sur de vrais appareils physiques (iOS et Android)</test>
+      </testing>
     </issue>
   </troubleshooting>
 

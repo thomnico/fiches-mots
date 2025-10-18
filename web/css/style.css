@@ -504,10 +504,19 @@ header h1 {
 @media (max-width: 768px) {
     .container {
         padding: 20px;
+        border-left: 20px solid var(--accent-yellow);
+    }
+
+    .container::before {
+        left: 5px;
     }
 
     header h1 {
         font-size: 1.8em;
+    }
+
+    .subtitle {
+        font-size: 1em;
     }
 
     .images-grid {
@@ -524,5 +533,64 @@ header h1 {
 
     .btn-more-images {
         width: 100%;
+    }
+
+    /* Adaptation de l'interface IA pour mobile */
+    .ai-generator-section {
+        padding: 15px;
+    }
+
+    .ai-controls {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .form-group-inline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .form-group-inline label {
+        font-size: 1em;
+    }
+
+    .form-group-inline input[type="range"] {
+        width: 100%;
+        min-width: 100%;
+        height: 40px; /* Plus grand pour le tactile */
+    }
+
+    .form-group-inline span {
+        font-size: 1.5em;
+        min-width: 40px;
+        align-self: center;
+    }
+
+    .btn-magic {
+        width: 100%;
+        padding: 16px 28px;
+        font-size: 1.1em;
+    }
+
+    .ai-info {
+        font-size: 0.9em;
+        padding: 12px;
+    }
+
+    /* Assurer que tous les éléments de formulaire soient tactiles */
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px; /* Évite le zoom automatique sur iOS */
+        padding: 14px 16px;
+    }
+
+    /* Boutons plus grands pour le tactile */
+    .btn {
+        padding: 16px 28px;
+        font-size: 1.1em;
+        min-height: 48px; /* Minimum recommandé pour le tactile */
     }
 }
