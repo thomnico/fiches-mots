@@ -34,6 +34,10 @@ web/js/config.api.js
 # Vercel
 .vercel
 
+# Node.js
+node_modules/
+package-lock.json
+
 # Tests screenshots
 web/screenshots/
 
