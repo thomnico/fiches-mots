@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   <metadata>
     <name>fiches-mots</name>
     <description>Générateur automatique de fiches pédagogiques PDF pour la maternelle française</description>
-    <language>Python</language>
-    <version>1.0.0</version>
+    <language>JavaScript</language>
+    <version>2.0.0</version>
+    <stack>Web App (HTML/CSS/JavaScript + Vercel Serverless)</stack>
   </metadata>
 
   <critical_rules priority="MAXIMUM">
@@ -24,15 +25,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       🔤 FONT REQUIREMENTS ARE STRICT
       - CAPITALS and Script MUST use dyslexic-friendly fonts (OpenDyslexic)
       - Cursive MUST use Écolier font (French school cursive)
-      - If OTF fonts don't work with ReportLab, convert them using FontForge
+      - Fonts are loaded via TTF files in /fonts/ directory
       - NEVER substitute with standard fonts without explicit permission
     </rule>
     <rule id="image_search">
-      🎨 IMAGE SEARCH PRIORITY
-      - First priority: OpenClipart (naive vector drawings for children)
-      - Second: Wikimedia Commons (with preference for illustrations/drawings)
-      - Never skip image search steps
-      - Always filter for child-appropriate, educational content
+      🎨 IMAGE SEARCH via Google Custom Search API
+      - Uses serverless API endpoint /api/google-search
+      - Returns child-appropriate, educational images
+      - Fallback to "none" if no images found
     </rule>
     <rule id="mobile_responsive">
       📱 RESPONSIVE DESIGN REQUIREMENT
@@ -43,148 +43,100 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       - UI elements must be properly sized for touch screens
       - All features must work seamlessly on mobile browsers
     </rule>
+    <rule id="pdf_layout">
+      📄 PDF LAYOUT REQUIREMENTS
+      - Format A6: 4 cards per A4 page (2×2 grid, portrait orientation)
+      - Layout per card: Image at TOP, Text at BOTTOM
+      - Text: 3 styles stacked (CAPITALS, script, cursive)
+      - Black borders: A6 cards + image/text boxes
+      - Light gray dotted cross separator
+      - Reduced margins (14.17pt = 0.5cm)
+      - Dynamic font sizing for long words
+    </rule>
   </critical_rules>
 
   <overview>
     <purpose>
-      Créer des fiches éducatives illustrées pour l'apprentissage des mots en maternelle.
+      Application web pour créer des fiches éducatives illustrées pour l'apprentissage des mots en maternelle.
       Chaque fiche contient : une image, le mot en CAPITALES, en script, et en cursif.
-      Format : 2 mots par page A4.
+      Format : 4 fiches A6 par page A4 (2×2 grid).
     </purpose>
     <target_audience>Enseignants de maternelle française</target_audience>
   </overview>
 
   <architecture>
     <structure>
-      <file path="generate_fiches.py" type="script">
-        <description>Script principal autonome pour générer les PDFs</description>
-        <classes>
-          <class name="ImageSearcher">
-            <responsibility>Recherche et téléchargement d'images depuis Wikimedia Commons</responsibility>
-            <methods>
-              <method name="search_wikimedia">Recherche une image pour un mot donné</method>
-              <method name="download_image">Télécharge et convertit l'image en RGB</method>
-            </methods>
-          </class>
-          <class name="FichePDFGenerator">
-            <responsibility>Génération des fiches PDF avec ReportLab</responsibility>
-            <methods>
-              <method name="setup_fonts">Configure les polices (CAPITALES, script, cursif)</method>
-              <method name="draw_word_fiche">Dessine une fiche pour un mot (image + 3 styles)</method>
-              <method name="generate">Orchestre la génération complète du PDF</method>
-            </methods>
-          </class>
-        </classes>
-        <dependencies>
-          <library>reportlab - Génération PDF</library>
-          <library>requests - Téléchargement HTTP</library>
-          <library>beautifulsoup4 - Parsing HTML pour recherche d'images</library>
-          <library>Pillow - Traitement d'images</library>
-        </dependencies>
-      </file>
-
-      <file path="mots_automne.txt" type="data">
-        <description>Liste de mots exemple sur le thème de l'automne</description>
-        <format>Un mot par ligne, encodage UTF-8</format>
-      </file>
-
-      <directory path="fonts/">
-        <description>Polices TrueType optionnelles pour améliorer le rendu</description>
-        <files>
-          <file>cursive.ttf - Police manuscrite/cursive</file>
-          <file>script.ttf - Police script/scripte</file>
-        </files>
+      <directory path="web/">
+        <description>Application web frontend</description>
+        <file path="index.html">Interface utilisateur principale</file>
+        <file path="css/style.css">Styles responsive (mobile-first)</file>
+        <directory path="js/">
+          <file path="app.js">Orchestration de l'application</file>
+          <file path="pdfGenerator.js">Génération PDF avec jsPDF</file>
+          <file path="mistralAI.js">Génération de mots via API Mistral</file>
+          <file path="imageSearch.serverless.js">Recherche d'images via API</file>
+          <file path="config.js">Configuration et traductions</file>
+        </directory>
       </directory>
 
-      <directory path="output/">
-        <description>Dossier de sortie pour les PDFs générés</description>
+      <directory path="api/">
+        <description>Vercel Serverless Functions</description>
+        <file path="google-search.js">Proxy API Google Custom Search</file>
+        <file path="mistral.js">Proxy API Mistral AI</file>
+      </directory>
+
+      <directory path="fonts/">
+        <description>Polices TrueType pour dyslexie</description>
+        <file>capital.ttf - OpenDyslexic-Bold (CAPITALES)</file>
+        <file>script.ttf - OpenDyslexic (script)</file>
+        <file>cursive.ttf - Écolier (cursif français)</file>
       </directory>
     </structure>
 
     <key_concepts>
-      <concept name="Recherche d'images sans API">
+      <concept name="Serverless Architecture">
         <explanation>
-          Utilise le scraping HTML de Wikimedia Commons pour éviter les tokens API.
-          Méthode gratuite et sans authentification.
+          L'application utilise Vercel Serverless Functions pour les appels API.
+          Les clés API sont stockées dans les variables d'environnement Vercel.
+          Aucune clé API n'est exposée côté client.
         </explanation>
       </concept>
 
-      <concept name="Layout PDF">
+      <concept name="Layout PDF A6">
         <explanation>
-          Format A4 (21 x 29.7 cm) avec 2 mots par page.
-          Chaque fiche : Image (8x6cm) + 3 lignes de texte (CAPITALES 28pt, script 24pt, cursif 22pt).
+          Format A4 (595.28 × 841.89 pts) avec 4 fiches A6 (2×2 grid, portrait).
+          Chaque fiche A6 : Image en HAUT (yPosition + innerMargin/2), Texte en BAS (yPosition + a6Height - textBoxHeight - innerMargin/2).
+          Système de coordonnées jsPDF : Y=0 en haut, augmente vers le bas.
         </explanation>
       </concept>
 
-      <concept name="Polices par défaut">
+      <concept name="Polices Custom">
         <explanation>
-          Sans polices personnalisées : Helvetica-Bold (capitales), Helvetica (script), Times-Italic (cursif).
-          Amélioration possible en ajoutant des .ttf dans fonts/.
+          Les polices TTF sont chargées dynamiquement depuis /fonts/.
+          Conversion en base64 via FileReader, puis ajout à jsPDF via addFileToVFS().
+          Support des caractères français (é, è, ê, à, ç, œ).
+        </explanation>
+      </concept>
+
+      <concept name="Génération IA">
+        <explanation>
+          Utilise Mistral AI via API serverless pour générer des listes de mots thématiques.
+          Timeouts adaptés (45s), retry automatique (2 tentatives), gestion erreurs réseau.
+          Exclusion automatique des mots déjà présents.
         </explanation>
       </concept>
     </key_concepts>
   </architecture>
 
   <commands>
-    <installation>
-      <command>
-        <name>install_dependencies</name>
-        <usage>pip install -r requirements.txt</usage>
-        <description>Installe toutes les dépendances Python nécessaires</description>
-      </command>
-    </installation>
-
     <development>
       <command>
-        <name>generate_default</name>
-        <usage>python generate_fiches.py</usage>
-        <description>Génère un PDF avec la liste par défaut (mots_automne.txt)</description>
-        <output>output/fiches_maternelle.pdf</output>
-      </command>
-
-      <command>
-        <name>generate_custom_words</name>
-        <usage>python generate_fiches.py [fichier_mots.txt]</usage>
-        <description>Génère un PDF avec une liste de mots personnalisée</description>
-        <example>python generate_fiches.py mots_animaux.txt</example>
-      </command>
-
-      <command>
-        <name>generate_custom_output</name>
-        <usage>python generate_fiches.py [fichier_mots.txt] [sortie.pdf]</usage>
-        <description>Génère un PDF avec entrée et sortie personnalisées</description>
-        <example>python generate_fiches.py mots_animaux.txt output/animaux.pdf</example>
+        <name>start_dev_server</name>
+        <usage>vercel dev --listen 3000</usage>
+        <description>Démarre le serveur de développement Vercel avec support API serverless</description>
+        <note priority="CRITICAL">OBLIGATOIRE pour tester l'API Mistral et la recherche d'images</note>
       </command>
     </development>
-
-    <testing>
-      <browser>Firefox (Playwright)</browser>
-      <note>Tous les tests Playwright utilisent Firefox (déjà installé)</note>
-      <command>
-        <name>run_playwright_tests</name>
-        <usage>python tests/test_mistral_api.py</usage>
-        <description>Lance les tests Playwright pour l'intégration Mistral AI</description>
-        <coverage>8 tests: API directe, UI, génération, workflow, erreurs, modèle</coverage>
-      </command>
-      <command>
-        <name>run_mobile_tests</name>
-        <usage>python tests/test_mobile.py</usage>
-        <description>Lance les tests Playwright pour la compatibilité mobile</description>
-        <coverage>Tests de réactivité, interactions tactiles, API Mistral sur mobile</coverage>
-      </command>
-      <command>
-        <name>run_pdf_tests</name>
-        <usage>python tests/test_pdf_generation.py</usage>
-        <description>Lance les tests Playwright pour la génération PDF (desktop et mobile)</description>
-        <coverage>3 tests × 3 plateformes (Desktop, iPhone 12, Pixel 5): workflow complet, création blob, fallback téléchargement</coverage>
-        <features>
-          <feature>Timeouts adaptés pour réseau lent (60-90s)</feature>
-          <feature>Retry automatique (3 tentatives avec délai 2s)</feature>
-          <feature>Skip intelligent si problème réseau persistant</feature>
-          <feature>Screenshots de debug automatiques</feature>
-        </features>
-      </command>
-    </testing>
 
     <deployment>
       <platform>Vercel</platform>
@@ -222,80 +174,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
           <description>Supprime automatiquement tous les déploiements de plus d'1 heure</description>
           <note>Cette commande doit être exécutée après chaque push réussi</note>
         </command>
-        <command>
-          <name>remove_deployment</name>
-          <usage>vercel rm [deployment-url] --yes</usage>
-          <description>Supprime un déploiement spécifique</description>
-        </command>
-        <command>
-          <name>complete_deploy_workflow</name>
-          <usage>git push &amp;&amp; sleep 10 &amp;&amp; vercel ls | tail -n +3 | head -n -1 | tail -n +2 | awk '{print $2}' | xargs -I {} vercel rm {} --yes</usage>
-          <description>Workflow complet: push + attendre + nettoyer anciens déploiements</description>
-          <note>Garde uniquement le déploiement le plus récent</note>
-        </command>
       </commands>
     </deployment>
   </commands>
 
   <workflow>
     <typical_usage>
-      <step number="1">Créer un fichier texte avec des mots (un par ligne)</step>
-      <step number="2">Exécuter : python generate_fiches.py mon_fichier.txt</step>
-      <step number="3">Le script recherche automatiquement les images sur Wikimedia</step>
-      <step number="4">Génération du PDF dans output/ avec 2 mots par page</step>
-      <step number="5">Vérifier le PDF généré</step>
+      <step number="1">Ouvrir l'application web (localhost:3000 en dev)</step>
+      <step number="2">Saisir un thème (optionnel) et des mots (un par ligne)</step>
+      <step number="3">OU utiliser "Le Chat Magique" (Mistral AI) pour générer des mots</step>
+      <step number="4">Cliquer sur "Rechercher les images"</step>
+      <step number="5">Sélectionner une image pour chaque mot (3 propositions)</step>
+      <step number="6">Cliquer sur "Générer le PDF"</step>
+      <step number="7">Le PDF s'ouvre dans un nouvel onglet (desktop) ou se télécharge (mobile)</step>
     </typical_usage>
 
-    <adding_words>
-      <instruction>Éditer le fichier .txt ou créer un nouveau fichier</instruction>
-      <format>Un mot par ligne, encodage UTF-8, sans caractères spéciaux</format>
-      <themes_examples>
-        <theme name="automne">feuille, champignon, citrouille, marron</theme>
-        <theme name="animaux">chat, chien, oiseau, poisson</theme>
-        <theme name="couleurs">rouge, bleu, jaune, vert</theme>
-      </themes_examples>
-    </adding_words>
-
-    <adding_fonts>
-      <instruction>Télécharger des polices .ttf libres et les placer dans fonts/</instruction>
-      <required_files>
-        <file>fonts/cursive.ttf - Pour le style cursif/manuscrit</file>
-        <file>fonts/script.ttf - Pour le style script</file>
-      </required_files>
-      <recommendations>
-        <font type="cursive">Écolier, Cursive Standard</font>
-        <font type="script">Sassoon, OpenDyslexic, Andika</font>
-      </recommendations>
-    </adding_fonts>
+    <adding_words_via_ai>
+      <instruction>Utiliser le bouton "🪄 Le Chat Magique"</instruction>
+      <features>
+        <feature>Génération de 5-20 mots sur un thème</feature>
+        <feature>Exclusion automatique des mots déjà présents</feature>
+        <feature>Retry automatique si erreur réseau</feature>
+        <feature>Timeout adapté pour mobile (45s)</feature>
+      </features>
+    </adding_words_via_ai>
   </workflow>
 
   <troubleshooting>
-    <issue type="no_image_found">
-      <symptom>Message "Aucune image trouvée pour '[mot]'"</symptom>
-      <solutions>
-        <solution>Vérifier l'orthographe du mot</solution>
-        <solution>Essayer un synonyme plus courant</solution>
-        <solution>Rechercher manuellement sur commons.wikimedia.org</solution>
-        <solution>Le script continue sans image si non trouvée</solution>
-      </solutions>
-    </issue>
-
-    <issue type="connection_error">
-      <symptom>Erreur de téléchargement d'image</symptom>
-      <solutions>
-        <solution>Vérifier la connexion internet</solution>
-        <solution>Réessayer (Wikimedia peut être temporairement indisponible)</solution>
-      </solutions>
-    </issue>
-
-    <issue type="font_rendering">
-      <symptom>Polices par défaut peu adaptées</symptom>
-      <solutions>
-        <solution>Installer des polices .ttf personnalisées dans fonts/</solution>
-        <solution>Nommer les fichiers : cursive.ttf et script.ttf</solution>
-      </solutions>
-    </issue>
-
     <issue type="pdf_generation_mobile" priority="FIXED">
       <symptom>✅ CORRIGÉ: Le PDF ne s'affichait pas dans le browser et ne se créait pas sur mobile</symptom>
       <root_cause>
@@ -311,11 +216,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
           - Timeout URL.revokeObjectURL() prolongé à 10s pour connexions lentes
         </change>
       </solution_implemented>
-      <testing>
-        <test>tests/test_pdf_generation.py - 9 tests (3 tests × 3 plateformes)</test>
-        <test>Vérification création blob, ouverture popup, fallback téléchargement</test>
-        <test>Timeouts adaptés pour réseau lent avec retry automatique</test>
-      </testing>
+    </issue>
+
+    <issue type="pdf_layout_image_position" priority="FIXED">
+      <symptom>✅ CORRIGÉ: Les images apparaissaient en dessous du texte au lieu d'être au-dessus</symptom>
+      <root_cause>
+        Calculs de coordonnées Y inversés dans jsPDF (Y=0 en haut, augmente vers le bas)
+      </root_cause>
+      <solution_implemented>
+        <change file="web/js/pdfGenerator.js:257-262">
+          - imageBoxY = yPosition + innerMargin / 2 (EN HAUT)
+          - textBoxY = yPosition + a6Height - textBoxHeight - innerMargin / 2 (EN BAS)
+        </change>
+      </solution_implemented>
     </issue>
 
     <issue type="mistral_api_mobile" priority="MONITORED">
@@ -325,63 +238,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         <solution>✅ Timeouts augmentés (45s pour API Mistral)</solution>
         <solution>✅ Retry automatique (2 tentatives) implémenté dans mistralAI.js</solution>
         <solution>✅ Gestion d'erreurs réseau spécifique mobile</solution>
-        <solution>Vérifier les CORS et les restrictions réseau mobile</solution>
       </solutions>
-      <testing>
-        <test>Utiliser tests/test_mobile.py pour reproduire et debugger le problème</test>
-        <test>Tester avec émulation mobile dans les DevTools navigateur</test>
-        <test>Tester sur de vrais appareils physiques (iOS et Android)</test>
-      </testing>
     </issue>
 
-    <issue type="network_timeout" priority="HANDLED">
-      <symptom>Timeouts lors de la recherche d'images avec connexion lente</symptom>
+    <issue type="api_serverless">
+      <symptom>API ne fonctionne pas en développement</symptom>
       <solutions>
-        <solution>✅ Tous les tests implémentent retry automatique (3 tentatives)</solution>
-        <solution>✅ Timeouts adaptés: 60s opérations PDF, 90s recherche images</solution>
-        <solution>✅ Skip intelligent si problème réseau persistant (ne fait pas échouer la suite)</solution>
-        <solution>✅ Messages informatifs pour diagnostiquer les problèmes réseau</solution>
+        <solution>✅ Utiliser 'vercel dev --listen 3000' au lieu de 'python -m http.server'</solution>
+        <solution>Vérifier que les variables d'environnement sont configurées dans .env.local</solution>
+        <solution>Redémarrer Vercel Dev si les variables changent</solution>
       </solutions>
     </issue>
   </troubleshooting>
 
   <technical_notes>
     <note type="image_search">
-      <title>Méthode de recherche gratuite</title>
+      <title>Recherche via Google Custom Search API</title>
       <details>
-        Scraping HTML de Wikimedia Commons via BeautifulSoup.
-        Pas d'API token requis, mais délai de 1s entre requêtes pour respecter les serveurs.
+        Utilise l'API Google Custom Search via une fonction serverless.
+        Filtre: images libres de droits, adaptées aux enfants.
+        Fallback: "none" si aucune image trouvée.
       </details>
     </note>
 
-    <note type="image_processing">
-      <title>Conversion d'images</title>
+    <note type="pdf_generation">
+      <title>Génération PDF avec jsPDF</title>
       <details>
-        Toutes les images sont converties en RGB pour compatibilité PDF.
-        Support de RGBA, LA, P avec fond blanc si nécessaire.
-        Ratio d'aspect préservé lors de l'insertion.
+        Bibliothèque: jsPDF 2.5.1 (CDN)
+        Format: A4 portrait (595.28 × 841.89 pts)
+        Layout: 4 fiches A6 par page (2×2 grid)
+        Polices: TTF custom chargées en base64
+        Images: Converties en Data URLs via CORS proxy
       </details>
     </note>
 
-    <note type="pdf_layout">
-      <title>Dimensions des éléments</title>
+    <note type="font_loading">
+      <title>Chargement des polices TTF</title>
       <details>
-        Page A4 : 21 x 29.7 cm
-        Marges : 2 cm
-        Image : 8 x 6 cm (ajustée selon ratio)
-        Ligne de séparation entre les 2 mots : trait gris (0.8, 0.8, 0.8)
+        Les polices sont chargées via fetch() depuis /fonts/
+        Conversion en base64 via FileReader
+        Ajout à jsPDF via addFileToVFS() et addFont()
+        Cache: les polices sont chargées une seule fois par session
+      </details>
+    </note>
+
+    <note type="coordinate_system">
+      <title>Système de coordonnées jsPDF</title>
+      <details>
+        Y=0 en HAUT de la page, augmente vers le BAS
+        Donc pour placer du contenu en HAUT visuel: utiliser une PETITE valeur Y
+        Pour placer du contenu en BAS visuel: utiliser une GRANDE valeur Y
       </details>
     </note>
   </technical_notes>
-
-  <extensions_ideas>
-    <idea>Ajouter support pour thèmes prédéfinis (animaux, couleurs, etc.)</idea>
-    <idea>Interface graphique simple (Tkinter) pour sélection de mots</idea>
-    <idea>Export en plusieurs formats (PNG par fiche, etc.)</idea>
-    <idea>Personnalisation des couleurs et mise en page</idea>
-    <idea>Cache local des images téléchargées</idea>
-    <idea>Support pour phrases courtes (pas seulement mots isolés)</idea>
-  </extensions_ideas>
 
   <educational_context>
     <target_age>3-6 ans (maternelle française : PS, MS, GS)</target_age>

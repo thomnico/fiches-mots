@@ -1,16 +1,5 @@
-# Python
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-
-# Output
-output/*.pdf
+# Output (legacy)
+output/
 
 # IDE
 .vscode/
