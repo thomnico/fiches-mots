@@ -98,10 +98,10 @@ class PDFGenerator {
      */
     async generatePDF(words, theme, progressCallback) {
         try {
-            // Créer le document PDF
+            // Créer le document PDF en PORTRAIT (4 fiches A6 par page)
             const { jsPDF } = window.jspdf;
             this.doc = new jsPDF({
-                orientation: 'landscape',  // Format paysage pour plus d'espace
+                orientation: 'portrait',  // Format portrait pour 4 fiches A6
                 unit: 'pt',
                 format: 'a4'
             });
@@ -130,40 +130,39 @@ class PDFGenerator {
                 creator: 'FichesMots Web App'
             });
 
-            // Générer les pages (2 mots par page)
+            // Générer les pages (4 mots par page A4 = 4 fiches A6)
             let pageCreated = false;
-            for (let i = 0; i < words.length; i += 2) {
+            for (let i = 0; i < words.length; i += 4) {
                 if (pageCreated) {
                     this.doc.addPage();
                 }
 
                 progressCallback((i / words.length) * 100);
 
-                // Dessiner les 2 mots de la page
-                const pageWords = words.slice(i, i + 2);
+                // Dessiner les 4 mots de la page (4 fiches A6)
+                const pageWords = words.slice(i, i + 4);
 
                 for (let j = 0; j < pageWords.length; j++) {
                     await this.drawWordFiche(pageWords[j].word, pageWords[j].imageUrl, j);
                 }
 
-                // Ligne de séparation verticale entre les 2 fiches (si 2 fiches sur la page)
-                if (pageWords.length === 2) {
-                    const cfg = CONFIG.pdf;
-                    const pageWidth = this.doc.internal.pageSize.getWidth();
-                    const pageHeight = this.doc.internal.pageSize.getHeight();
-                    const margin = cfg.margin;
+                // Dessiner les pointillés de séparation en croix (plus légers)
+                const pageWidth = this.doc.internal.pageSize.getWidth();
+                const pageHeight = this.doc.internal.pageSize.getHeight();
+                const a6Width = pageWidth / 2;
+                const a6Height = pageHeight / 2;
 
-                    this.doc.setDrawColor(200, 200, 200); // Gris clair
-                    this.doc.setLineWidth(1);
-                    this.doc.setLineDash([5, 3]); // Ligne pointillée
-                    this.doc.line(
-                        pageWidth / 2,
-                        margin,
-                        pageWidth / 2,
-                        pageHeight - margin
-                    );
-                    this.doc.setLineDash([]); // Réinitialiser le style de ligne
-                }
+                this.doc.setDrawColor(200, 200, 200); // Gris très clair
+                this.doc.setLineWidth(0.5); // Plus fin
+                this.doc.setLineDash([2, 4]); // Pointillés plus espacés: 2pt trait, 4pt espace
+
+                // Ligne verticale centrale
+                this.doc.line(a6Width, 0, a6Width, pageHeight);
+
+                // Ligne horizontale centrale
+                this.doc.line(0, a6Height, pageWidth, a6Height);
+
+                this.doc.setLineDash([]); // Réinitialiser le style de ligne
 
                 pageCreated = true;
             }
@@ -211,43 +210,63 @@ class PDFGenerator {
     }
 
     /**
-     * Dessine une fiche pour un mot sur la page
-     * EN PAYSAGE: Layout côte à côte (2 colonnes)
+     * Dessine une fiche A6 avec cadre noir pour un mot
+     * Layout: moitié haute = image dans boîte, moitié basse = 3 mots dans boîte
      * @param {string} word - Le mot à afficher
      * @param {string} imageUrl - URL de l'image
-     * @param {number} position - Position sur la page (0 = gauche, 1 = droite)
+     * @param {number} position - Position sur la page (0-3: haut-gauche, haut-droite, bas-gauche, bas-droite)
      */
     async drawWordFiche(word, imageUrl, position) {
-        const cfg = CONFIG.pdf;
-        const margin = cfg.margin;
-
-        // EN PAYSAGE: 2 fiches côte à côte (position 0 = gauche, 1 = droite)
         const pageWidth = this.doc.internal.pageSize.getWidth();
+        const pageHeight = this.doc.internal.pageSize.getHeight();
 
-        // Largeur disponible pour chaque fiche (moitié de la page)
-        const ficheWidth = (pageWidth - 3 * margin) / 2; // 3 marges: gauche, milieu, droite
+        // Dimensions A6 = A4 / 4
+        const a6Width = pageWidth / 2;
+        const a6Height = pageHeight / 2;
 
-        // Position X de la fiche (gauche ou droite)
-        const ficheX = position === 0
-            ? margin  // Fiche gauche
-            : margin * 2 + ficheWidth; // Fiche droite
+        // Positions des 4 fiches A6 sur la page A4
+        const positions = [
+            { x: 0, y: a6Height },           // Haut gauche
+            { x: a6Width, y: a6Height },     // Haut droite
+            { x: 0, y: 0 },                   // Bas gauche
+            { x: a6Width, y: 0 }              // Bas droite
+        ];
+
+        const pos = positions[position];
+        const xPosition = pos.x;
+        const yPosition = pos.y;
+
+        // Cadre noir autour de la fiche A6
+        this.doc.setDrawColor(0, 0, 0);
+        this.doc.setLineWidth(2);
+        this.doc.rect(xPosition, yPosition, a6Width, a6Height);
+
+        // Marges intérieures réduites pour les boîtes (0.5cm = 14.17pt)
+        const innerMargin = 14.17;
 
         // Centre horizontal de la fiche
-        const xCenter = ficheX + ficheWidth / 2;
+        const xCenter = xPosition + a6Width / 2;
 
-        // Position Y initiale (haut de la page)
-        const topMargin = margin;
+        // Image en HAUT, texte en BAS
+        // En jsPDF, Y=0 est en haut et augmente vers le bas
+        // Pour un card qui commence à yPosition et s'étend sur a6Height:
+        // - Top visuel = yPosition (bas Y) -> zone IMAGE
+        // - Bottom visuel = yPosition + a6Height (haut Y) -> zone TEXTE
 
-        // ZONE IMAGE: hauteur fixe réservée pour l'image
-        const imageZoneHeight = cfg.imageMaxHeight * 1.69; // Zone réservée pour l'image (hauteur max)
+        const imageBoxHeight = (a6Height - innerMargin) / 2;
+        const imageBoxY = yPosition + innerMargin / 2;  // EN HAUT (bas Y)
+        const imageBoxWidth = a6Width - 2 * innerMargin;
 
-        // POSITIONS FIXES pour les mots (toujours à la même hauteur)
-        const textStartY = topMargin + imageZoneHeight + cfg.spacing;
-        const capitalY = textStartY;
-        const scriptY = capitalY + 40;
-        const cursiveY = scriptY + 70;
+        const textBoxHeight = (a6Height - innerMargin) / 2;
+        const textBoxY = yPosition + a6Height - textBoxHeight - innerMargin / 2;  // EN BAS (haut Y)
+        const textBoxWidth = a6Width - 2 * innerMargin;
 
-        // 1. Image (si disponible) - centrée dans la zone réservée
+        // === ZONE IMAGE (moitié haute) ===
+        // Boîte pour l'image
+        this.doc.setDrawColor(0, 0, 0);
+        this.doc.setLineWidth(2);
+        this.doc.rect(xPosition + innerMargin, imageBoxY, imageBoxWidth, imageBoxHeight);
+
         if (imageUrl && imageUrl !== 'none') {
             try {
                 // Télécharger l'image en Data URL
@@ -258,61 +277,83 @@ class PDFGenerator {
                 const imgWidth = img.width;
                 const imgHeight = img.height;
 
-                // Calculer les dimensions de l'image en respectant les proportions
-                // En paysage côte à côte, adapter la largeur max à la largeur de la fiche
-                const maxImageWidth = ficheWidth * 1.35; // 135% de la largeur de la fiche (+30% supplémentaires = +69% vs original 80%)
-                const maxImageHeight = cfg.imageMaxHeight * 1.69; // +69% total en hauteur (1.3 * 1.3 = 1.69)
+                // Dimensions maximales pour la zone image (avec marges internes)
+                const maxImgWidth = imageBoxWidth - 2 * 14.17; // 14.17pt = 0.5cm
+                const maxImgHeight = imageBoxHeight - 2 * 14.17;
 
+                // Calculer les proportions
                 const aspect = imgWidth / imgHeight;
                 let width, height;
 
-                if (aspect > maxImageWidth / maxImageHeight) {
-                    width = Math.min(maxImageWidth, cfg.imageMaxWidth);
+                if (aspect > maxImgWidth / maxImgHeight) {
+                    width = maxImgWidth;
                     height = width / aspect;
                 } else {
-                    height = Math.min(maxImageHeight, cfg.imageMaxHeight);
+                    height = maxImgHeight;
                     width = height * aspect;
                 }
 
-                // Centrer l'image horizontalement dans la fiche
+                // Centrer l'image dans la zone
                 const imgX = xCenter - width / 2;
-
-                // Centrer l'image verticalement dans la zone réservée
-                const imgY = topMargin + (imageZoneHeight - height) / 2;
-
-                // Bordure noire autour de l'image (2pt)
-                this.doc.setDrawColor(0, 0, 0);
-                this.doc.setLineWidth(2);
-                this.doc.rect(imgX - 5.67, imgY - 5.67, width + 11.34, height + 11.34);
+                const imgY = imageBoxY + (imageBoxHeight - height) / 2;
 
                 // Dessiner l'image
                 this.doc.addImage(dataUrl, 'JPEG', imgX, imgY, width, height);
 
             } catch (error) {
                 console.error(`Erreur chargement image pour "${word}":`, error);
-                // Continuer sans l'image (les mots restent à la même position)
             }
         }
 
-        // 2. Mot en CAPITALES (OpenDyslexic Bold, 32pt) - Position FIXE
-        this.doc.setFont('OpenDyslexic-Bold', 'normal');
-        this.doc.setFontSize(cfg.fontSize.capital);
+        // === ZONE TEXTE (moitié basse) ===
+        // Boîte pour les textes
+        this.doc.setDrawColor(0, 0, 0);
+        this.doc.setLineWidth(2);
+        this.doc.rect(xPosition + innerMargin, textBoxY, textBoxWidth, textBoxHeight);
+
+        // Rapprocher les textes du centre pour éviter le débordement du cursif
+        // Zone de texte plus concentrée au centre (70% de la hauteur disponible)
+        const textZoneHeight = textBoxHeight * 0.7;
+        const textZoneOffset = (textBoxHeight - textZoneHeight) / 2;
+        const textLineHeight = textZoneHeight / 3;
+
+        // Fonction pour ajuster la taille de police si le texte dépasse
+        const adjustFontSize = (text, font, maxSize, maxWidth) => {
+            let size = maxSize;
+            this.doc.setFont(font, 'normal');
+            this.doc.setFontSize(size);
+
+            // Réduire la taille si le texte dépasse
+            while (this.doc.getTextWidth(text) > maxWidth && size > 10) {
+                size -= 2;
+                this.doc.setFontSize(size);
+            }
+
+            return size;
+        };
+
+        const maxTextWidth = textBoxWidth - 20; // Marge de sécurité
+
+        // 1. Mot en CAPITALES (tiers supérieur de la zone concentrée)
+        const yCapital = textBoxY + textZoneOffset + 2 * textLineHeight + textLineHeight / 2 - 8;
+        adjustFontSize(word.toUpperCase(), 'OpenDyslexic-Bold', 24, maxTextWidth);
         this.doc.setTextColor(0, 0, 0);
-        this.doc.text(word.toUpperCase(), xCenter, capitalY, { align: 'center' });
+        this.doc.text(word.toUpperCase(), xCenter, yCapital, { align: 'center', maxWidth: maxTextWidth });
 
-        // 3. Mot en script (OpenDyslexic, 36pt) - Position FIXE
-        this.doc.setFont('OpenDyslexic', 'normal');
-        this.doc.setFontSize(cfg.fontSize.script);
-        this.doc.text(word.toLowerCase(), xCenter, scriptY, { align: 'center' });
+        // 2. Mot en script (tiers central de la zone concentrée)
+        const yScript = textBoxY + textZoneOffset + textLineHeight + textLineHeight / 2 - 10;
+        adjustFontSize(word.toLowerCase(), 'OpenDyslexic', 28, maxTextWidth);
+        this.doc.setTextColor(0, 0, 0);
+        this.doc.text(word.toLowerCase(), xCenter, yScript, { align: 'center', maxWidth: maxTextWidth });
 
-        // 4. Mot en cursif (Écolier, 64pt - TRÈS GRAND) - Position FIXE
-        // La police Écolier ne supporte pas Œ/œ, on les remplace par OE/oe
+        // 3. Mot en cursif (tiers inférieur de la zone concentrée)
+        const yCursive = textBoxY + textZoneOffset + textLineHeight / 2 - 5;
         const cursiveWord = word.toLowerCase()
             .replace(/œ/g, 'oe')
-            .replace(/Œ/g, 'oe'); // Déjà en lowercase, mais par sécurité
-        this.doc.setFont('Ecolier', 'normal');
-        this.doc.setFontSize(cfg.fontSize.cursive);
-        this.doc.text(cursiveWord, xCenter, cursiveY, { align: 'center' });
+            .replace(/Œ/g, 'oe');
+        adjustFontSize(cursiveWord, 'Ecolier', 48, maxTextWidth);
+        this.doc.setTextColor(0, 0, 0);
+        this.doc.text(cursiveWord, xCenter, yCursive, { align: 'center', maxWidth: maxTextWidth });
     }
 
     /**
